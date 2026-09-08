@@ -1,0 +1,89 @@
+name: Shared interface admission and package consumption
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: shared-interfaces-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  admission:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Verify exact reviewed head
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22.16.0'
+      - name: Resolve checked-in immutable dependency policy
+        id: pins
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync } from 'node:fs';
+          import { readPolicy } from './scripts/policy.mjs';
+          const p = await readPolicy(process.cwd());
+          appendFileSync(process.env.GITHUB_OUTPUT, `source=${p.source.commit}\nvalidator=${p.validator.commit}\n`);
+          NODE
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ores-otel/ores-interfaces
+          ref: ${{ steps.pins.outputs.source }}
+          path: .deps/compat
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ORESoftware/typespec-json-schema-validator
+          ref: ${{ steps.pins.outputs.validator }}
+          path: .deps/tjsv
+          persist-credentials: false
+      - name: Install TJSV's lockfile-pinned compiler and native flags2env addon
+        run: npm ci --prefix .deps/tjsv
+      - name: Record build-only advisories separately from interface conformance
+        run: node scripts/audit-toolchain.mjs
+      - name: Policy, filesystem and real external package-consumer tests
+        run: npm run check
+      - name: Build a fresh gated source package
+        run: |
+          mkdir -p tmp
+          npm pack --pack-destination tmp
+      - name: Validate Zed package and task integration
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/zed.tar.gz"
+          curl --fail --silent --show-error --location --retry 3 \
+            https://github.com/zed-pkg/zed-cli/releases/download/v0.3.0/zed-x86_64-unknown-linux-musl.tar.gz -o "$archive"
+          echo "e380240c96242ab3b29e0e9d14c95ba946d086f20f0732e34d0e5cf47513efc7  $archive" | sha256sum --check
+          mkdir -p "$RUNNER_TEMP/zed-bin"
+          tar -xzf "$archive" -C "$RUNNER_TEMP/zed-bin"
+          export PATH="$RUNNER_TEMP/zed-bin:$PATH"
+          zed validate
+          zed task list
+          zed task run test
+      - name: Require unchanged source and dependency lockfiles
+        run: |
+          git diff --exit-code HEAD
+          git -C .deps/compat diff --exit-code HEAD
+          git -C .deps/tjsv diff --exit-code HEAD
+      - name: Retain the tested source package and advisory inventory
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ores-interfaces-${{ matrix.os }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            tmp/*.tgz
+            tmp/tjsv-audit.json
+          if-no-files-found: error
+          retention-days: 14

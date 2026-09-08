@@ -1,0 +1,29 @@
+[package]
+org = "oresoftware"
+name = "ores-interfaces"
+version = "0.1.0"
+description = "TJSV-admitted shared interface sources"
+license = "MIT"
+
+[package.repository]
+vcs = "git"
+url = "https://github.com/ORESoftware/ores-interfaces"
+
+[install]
+dir = "zed_modules"
+
+[targets.repository]
+dir = "."
+adapter = "none"
+
+[targets.public-contracts]
+dir = "generated/public"
+name = "ores-public-contracts"
+adapter = "none"
+
+[scripts]
+test = "npm run check"
+
+[publish]
+include_readme = true
+exclude = [".deps/**", "node_modules/**", "tmp/**", "temp/**", "zed_modules/**", ".git/**"]

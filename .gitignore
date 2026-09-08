@@ -1,0 +1,10 @@
+.DS_Store
+.env
+.env.*
+.deps/
+node_modules/
+tmp/
+temp/
+*.tgz
+generated/*
+!generated/README.md

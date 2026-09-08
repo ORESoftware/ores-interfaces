@@ -23,7 +23,9 @@ export async function buildSharedInterfaces(root = ROOT) {
     const validatorRoot = join(root, '.deps/tjsv');
     await verifyCheckout(sourceRoot, policy.source.commit);
     await verifyCheckout(validatorRoot, policy.validator.commit);
-    const { withPublicAdmission, VALIDATOR_REVISION } = await import(pathToFileURL(join(sourceRoot, 'validation/tjsv/admission.mjs')).href);
+    const sourceModule = pathToFileURL(join(sourceRoot, 'validation/tjsv/admission.mjs'));
+    sourceModule.searchParams.set('commit', policy.source.commit);
+    const { withPublicAdmission, VALIDATOR_REVISION } = await import(sourceModule.href);
     assert.equal(VALIDATOR_REVISION, policy.validator.commit, 'source gate and consumer toolchain must agree');
     return withPublicAdmission({ sourceRoot, validatorRoot }, async (evidence) => {
       assert.deepEqual(evidence.summary.declarations, DECLARATIONS);
@@ -39,6 +41,7 @@ export async function buildSharedInterfaces(root = ROOT) {
       files['provenance.json'] = json({ ...body, packageId: sha256(json(body)) });
       await verifyCheckout(sourceRoot, policy.source.commit);
       await verifyCheckout(validatorRoot, policy.validator.commit);
+      assert.deepEqual(await readPolicy(root), policy, 'shared source policy changed during build');
       return files;
     });
   });

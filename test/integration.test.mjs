@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { chmod, cp, lstat, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { chmod, cp, lstat, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -56,6 +56,16 @@ test('actual TJSV admission, artifact rejection and external packed-source consu
       assert.equal(provenance.editableAuthority, false);
       assert.ok(import.meta.resolve('@oresoftware/ores-interfaces/typespec').endsWith('/main.tsp'));
     `], consumer);
+    // Exercise tspMain through an ordinary package import with pinned peer libraries.
+    await mkdir(join(consumer, 'node_modules/@typespec'), { recursive: true });
+    for (const name of ['compiler', 'json-schema'])
+      await symlink(join(ROOT, '.deps/tjsv/node_modules/@typespec', name), join(consumer, 'node_modules/@typespec', name), 'dir');
+    const entry = join(consumer, 'main.tsp');
+    const tsp = join(ROOT, '.deps/tjsv/node_modules/.bin/tsp');
+    await writeFile(entry, 'import "@oresoftware/ores-interfaces";\nmodel ConsumerRequest { meta: Ores.Validation.RequestMeta; page: Ores.Validation.PageQuery; }\n');
+    await execute(tsp, ['compile', entry, '--no-emit', '--warn-as-error'], consumer);
+    await writeFile(entry, 'import "@oresoftware/ores-interfaces";\nmodel Forbidden { actor: Ores.Validation.TrustedActor; }\n');
+    await assert.rejects(execute(tsp, ['compile', entry, '--no-emit', '--warn-as-error'], consumer));
     // Recompile the actual packed source bytes against each other and the pinned
     // recorded corpus, not merely a successful JSON.parse or package listing.
     const sourceRoot = join(work, 'packed-contract');

@@ -8,6 +8,7 @@
   "repository": "github:ORESoftware/ores-interfaces",
   "tspMain": "generated/public/main.tsp",
   "exports": {
+    ".": { "typespec": "./generated/public/main.tsp" },
     "./schema": "./generated/public/schema.json",
     "./typespec": "./generated/public/main.tsp",
     "./provenance": "./generated/public/provenance.json",

@@ -1,0 +1,28 @@
+{
+  "name": "@oresoftware/ores-interfaces",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TJSV-admitted shared interface source package for ORESoftware consumers",
+  "type": "module",
+  "license": "MIT",
+  "repository": "github:ORESoftware/ores-interfaces",
+  "tspMain": "generated/public/main.tsp",
+  "exports": {
+    "./schema": "./generated/public/schema.json",
+    "./typespec": "./generated/public/main.tsp",
+    "./provenance": "./generated/public/provenance.json",
+    "./manifest": "./shared-interfaces.json",
+    "./package.json": "./package.json"
+  },
+  "files": ["generated/public/schema.json", "generated/public/main.tsp", "generated/public/provenance.json", "generated/public/LICENSE.upstream", "shared-interfaces.json", "THIRD_PARTY_NOTICES.md"],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test test/policy.test.mjs test/output.test.mjs",
+    "test:integration": "node --test test/integration.test.mjs",
+    "check": "npm test && npm run test:integration",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": { "@typespec/compiler": "1.15.0", "@typespec/json-schema": "1.15.0" },
+  "peerDependenciesMeta": { "@typespec/compiler": { "optional": true }, "@typespec/json-schema": { "optional": true } },
+  "engines": { "node": ">=22.9" }
+}

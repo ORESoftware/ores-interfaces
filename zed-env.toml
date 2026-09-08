@@ -1,0 +1,5 @@
+schema = 2
+
+[tasks.check]
+description = "Verify byte-preserved shared contracts and tamper-rejection regressions"
+run = ["node --test test/*.test.mjs"]

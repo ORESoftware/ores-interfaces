@@ -1,0 +1,20 @@
+{
+  "schema": "ores.shared-interface-copies/v1",
+  "policy": "duplicate-not-extract",
+  "repository": "ores-otel/ores-interfaces",
+  "commit": "5e1b9c583e1734b3aa78b585317e1a0de3374ae1",
+  "files": [
+    {
+      "path": "contracts/shared-public/validation.tsp",
+      "sourcePath": "validation/typespec/validation.tsp",
+      "gitBlob": "08835755a35e81c3b0b33fcc77869af640fb6a89",
+      "sha256": "e17be28a78b019f78c49377fd5765fef6000f8fb9b74e8c52bf0cfa72e62f97d"
+    },
+    {
+      "path": "contracts/shared-public/schema.json",
+      "sourcePath": "validation/public-contracts.v1.json",
+      "gitBlob": "cc1afb6c0221c153fee37c3d7f6749ea4f308e1e",
+      "sha256": "5938e6660dd4b2f8019d530bfd5ae88a5ffe873bad2692a9a2398c313b08efc2"
+    }
+  ]
+}

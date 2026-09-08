@@ -1,0 +1,34 @@
+[package]
+org = "oresoftware"
+name = "ores-interfaces"
+version = "0.1.0"
+description = "Cross-organization shared contracts with preserved upstream copies and peer-authority admission"
+license = "MIT"
+
+[package.repository]
+vcs = "git"
+url = "https://github.com/ORESoftware/ores-interfaces"
+
+[install]
+dir = "zed_modules"
+
+[dependencies]
+"ores-otel/ores-interfaces" = "^0.1.0"
+
+[scripts]
+test = "node --test test/*.test.mjs"
+
+[publish]
+include_readme = true
+tag_format = "v{version}"
+exclude = [".deps/**", "tmp/**", "temp/**", "zed_modules/**", "node_modules/**", ".typespec-json-schema-validator/**"]
+smoke_test = "node --test test/*.test.mjs && tjsv check --typespec=contracts/shared-public/validation.tsp --schema=contracts/shared-public/schema.json --instances=corpus --report=tmp/parity.json --contract-ir=tmp/contract-ir.json"
+
+[targets.repository]
+dir = "."
+adapter = "none"
+
+[targets.contracts]
+dir = "contracts"
+name = "ores-shared-public-contracts"
+adapter = "none"

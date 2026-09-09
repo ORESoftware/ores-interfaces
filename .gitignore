@@ -1,7 +1,10 @@
-tmp/
-temp/
+.DS_Store
+.env
+.env.*
 .deps/
 node_modules/
-zed_modules/
-.typespec-json-schema-validator/
-.DS_Store
+tmp/
+temp/
+*.tgz
+generated/*
+!generated/README.md

@@ -1,0 +1,14 @@
+{
+  "schema": "ores.shared-interfaces-source/v1",
+  "repository": "ORESoftware/ores-interfaces",
+  "source": { "repository": "ores-otel/ores-interfaces", "commit": "09b06c7d82852b657e812a70eeb63023d0aed2a6" },
+  "validator": { "repository": "ORESoftware/typespec-json-schema-validator", "commit": "d60d0d79d83e075077382623ec9e23a401ab601f" },
+  "authorityModel": "independent-typespec-and-json-schema-peers",
+  "authorityTransfer": false,
+  "expectedDeclarations": ["Ores.Validation.PageQuery", "Ores.Validation.ProblemDetails", "Ores.Validation.PublicValidationContract", "Ores.Validation.RequestMeta"],
+  "scopes": {
+    "isomorphic": ["Ores.Validation.PageQuery", "Ores.Validation.ProblemDetails", "Ores.Validation.PublicValidationContract", "Ores.Validation.RequestMeta"],
+    "client": [], "edge": [], "server": []
+  },
+  "runtimeExports": { "browser": ["isomorphic"], "node": ["isomorphic"], "deno": ["isomorphic"], "bun": ["isomorphic"], "edge": ["isomorphic"], "native": ["isomorphic"] }
+}

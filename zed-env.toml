@@ -1,5 +1,13 @@
 schema = 2
 
+[tasks.test]
+description = "Run dependency-free scope and output-ownership regressions"
+run = ["npm test"]
+
 [tasks.check]
-description = "Verify byte-preserved shared contracts and tamper-rejection regressions"
-run = ["node --test test/*.test.mjs"]
+description = "Run all tests including real TJSV compilation and packed-source consumption"
+run = ["npm run check"]
+
+[tasks.build]
+description = "Admit independent sources and assemble a read-only public source package"
+run = ["npm run build"]

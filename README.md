@@ -1,59 +1,56 @@
 # ores-interfaces
 
-Shared interface entry point for ORESoftware repositories.
+TJSV-gated shared interface source package for ORESoftware applications, libraries
+and tooling. The initial public surface is `Ores.Validation.RequestMeta`,
+`PageQuery`, `ProblemDetails`, and `PublicValidationContract`.
 
-This repository duplicates shared contracts without extracting or removing them
-from their originating repositories. The first snapshot contains the existing
-public RequestMeta, PageQuery, and ProblemDetails contracts from
-`ores-otel/ores-interfaces`, with both original TypeSpec and independently
-maintained JSON Schema bytes preserved. The original schema identity is retained.
-Do not register both copies of the same `$id` as competing resolver resources.
+This repository consumes the existing independently authored TypeSpec and
+Draft 2020-12 JSON Schema from `ores-otel/ores-interfaces` at an immutable commit.
+It does not transfer that repository or create a competing editable authority.
+Existing auth/platform consumers remain compatible and are not migrated by this
+change. The exact source and TJSV commits are in `shared-interfaces.json`.
 
-## Acceptance boundaries
+## Admission and packaging
 
-`provenance/shared-public.json` binds the source repository, immutable commit,
-source paths, Git blob hashes, and SHA-256 digests. `node --test test/*.test.mjs`
-checks complete copied-file inventory, content, path safety, and tamper rejection.
-With `UPSTREAM_ROOT` set, it also compares against the actual source checkout.
-These checks prove copy integrity, not source correctness or semantic equivalence.
+Every build checks both Git revisions and clean source trees, runs the actual
+TJSV compiler/parity CLI with recorded positive/negative instances, then runs
+canonical `verify-ir` over explicit current inputs and the complete declaration
+inventory. Only afterwards does it assemble unchanged public source snapshots.
+The validator is imported from its upstream repository, not copied here.
 
-CI separately invokes pinned `ORESoftware/typespec-json-schema-validator` (TJSV)
-on both copied authorities and the positive/negative corpus. Generated witnesses,
-receipts, and Contract IR go outside the authored source directory and are retained
-as CI artifacts. No source wins by fallback; unsupported comparisons or disagreement
-must stop admission. The legacy TypeSpec alias and numeric emitter semantics must
-be reconciled explicitly if TJSV reports them; no ignore mapping is pre-authorized.
+`generated/public` contains TypeSpec, JSON Schema, source/toolchain/output
+provenance and the upstream license. Public source exports are isomorphic;
+client, edge and server-specific scopes are empty. No private auth/ORM contracts
+or unchecked legacy language implementations are included in this package.
 
-This bootstrap is not a fleet-wide conformance certificate. No accepted receipt,
-registry release, resolver-generated lock, or language-runtime parity is invented.
-Existing consumers remain on their existing packages until those gates pass.
+Development commands after provisioning the manifest-pinned `.deps/compat`
+(source repository) and `.deps/tjsv` (validator), as demonstrated in CI:
 
-## Zed dependency graph
+```sh
+npm ci --prefix .deps/tjsv
+npm test
+npm run test:integration
+npm run build
+npm pack
+```
 
-`.zpkg.toml` declares the original `ores-otel/ores-interfaces` as a transition
-source dependency and exposes real repository/contract targets. `zed-env.toml`
-provides the check task. No placeholder `.zpkg.lock` is committed.
+The root package has no development dependencies to resolve. TypeSpec users
+provide the declared optional compiler/emitter peers; JSON Schema consumers do
+not need them. Build tasks require Node 22.9+ and Git. Extra task flags are
+rejected; TJSV owns CLI option parsing through its flags-2-env contract.
 
-After reviewed publication and genuine registry resolution, consumers in
-Shared Auth, ORES middleware, rate limiting, telemetry, and other orgs can add
-`oresoftware/ores-interfaces` through Zed and commit the resolver-produced lock.
-CI then uses `zed install --frozen`; do not substitute a handwritten lock or
-metadata-only declaration for an executed dependency installation.
+The npm source package exposes `@oresoftware/ores-interfaces/schema`,
+`/typespec`, `/provenance`, and `/manifest`; `tspMain` selects the admitted
+TypeSpec source. It remains `private: true`: local/CI tarball consumption is
+supported, but registry publication requires a separate reviewed release.
 
-## Ownership
+## Boundaries
 
-TypeSpec and JSON Schema are independent human-maintained sources. Language
-validators and validated construction APIs belong in the corresponding shared
-`*-lib-core` / `*-pub-lib-core` libraries. `*-clients` consume them rather than
-inventing another ruleset. Authentication, verified tenant identity, authorization,
-database checks, and private business invariants remain server-side. Public
-RequestMeta is not trusted actor context. Serde/JSON conversion alone is not a
-semantic validation boundary; client checks never replace server revalidation.
+This gate certifies bounded data-contract evidence for these four declarations,
+not all legacy auth/platform contracts, every SDK, or universal schema
+equivalence. No services are deployed. Runtime request validation still belongs
+at application admission boundaries; shipping schemas alone does not execute it.
+15+ language code generation, full authority migration and signed release
+attestations remain separate work. Follow the migration notes in `docs/`.
 
-Next acceptance work: actual Zod/Rust/Dart runtime fixtures; constructor and
-Serde bypass rejection; missing/null/value PATCH semantics; Unicode units;
-format-assertion policy; normalized error redaction; native/web Dart execution;
-paired test-org consumers and genuine frozen Zed resolution. Scope and current
-findings are tracked in DEN-3958, not marked complete by this bootstrap.
-
-Parent engineering policy: https://github.com/ORESoftware/my-ai/blob/main/AGENTS.md
+Tracking: DEN-3828 and ORESoftware/typespec-json-schema-validator#20.

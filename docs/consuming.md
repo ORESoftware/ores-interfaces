@@ -47,6 +47,30 @@ they do not create a separate validator. `zed validate` and task execution are
 checked with the pinned CLI in CI. Registry resolution, publication and a genuine
 frozen installation remain release work; no placeholder lock claims otherwise.
 
+## Domain-specific form contracts and runtime validators
+
+A domain package such as `ores-forms/ores-forms-interfaces` owns its form models.
+Its author-maintained TypeSpec and human-authored Draft 2020-12 JSON Schema are
+independent peer authorities and must be admitted together through pinned TJSV.
+Do not move form-specific models into this repository merely to make code generation
+or package consumption convenient. This repository is only for interfaces that are
+truly shared across organizations.
+
+Zod/TypeScript, Rust/Serde-backed validation, Dart/Flutter, WASM and Qt/QML
+bindings are downstream runtime artifacts and evidence. A TJSV-integrated generator
+or adapter may derive them from admitted inputs, but generated output must stay in a
+read-only `generated/` tree, retain source/toolchain provenance, and never become a
+third editable contract authority. Promotion requires positive/negative runtime
+fixtures against the exact admitted contract revision; successful code generation
+alone is not runtime-conformance evidence.
+
+Form synchronization is a separate concern. `opto-sync` may carry optimistic local
+updates, revisions and conflict metadata between app layers, but it does not own field
+validation rules. Every server admission boundary still revalidates the submitted
+payload against the same admitted contract semantics before authorization or writes.
+Client-side reactive validation improves UX and can reject early; it never replaces
+server-side validation, tenant checks, authorization or database invariants.
+
 ## Ownership and migration
 
 This package currently distributes the four shared public validation declarations

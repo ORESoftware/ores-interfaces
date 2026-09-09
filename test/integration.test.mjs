@@ -67,13 +67,14 @@ test('actual TJSV admission, artifact rejection and external packed-source consu
     await writeFile(entry, 'import "@oresoftware/ores-interfaces";\nmodel Forbidden { actor: Ores.Validation.TrustedActor; }\n');
     await assert.rejects(execute(tsp, ['compile', entry, '--no-emit', '--warn-as-error'], consumer));
     // Recompile the actual packed source bytes against each other and the pinned
-    // recorded corpus, not merely a successful JSON.parse or package listing.
+    // recorded corpus/source-lock closure, not merely a successful JSON.parse or package listing.
     const sourceRoot = join(work, 'packed-contract');
     await mkdir(join(sourceRoot, 'validation/typespec'), { recursive: true });
     await mkdir(join(sourceRoot, 'validation/tjsv'), { recursive: true });
     await cp(join(installed, 'generated/public/main.tsp'), join(sourceRoot, 'validation/typespec/validation.tsp'));
     await cp(join(installed, 'generated/public/schema.json'), join(sourceRoot, 'validation/public-contracts.v1.json'));
     await cp(join(ROOT, '.deps/compat/validation/tjsv/public-corpus.json'), join(sourceRoot, 'validation/tjsv/public-corpus.json'));
+    await cp(join(ROOT, '.deps/compat/validation/tjsv/source-lock.json'), join(sourceRoot, 'validation/tjsv/source-lock.json'));
     const { withPublicAdmission } = await import(pathToFileURL(join(ROOT, '.deps/compat/validation/tjsv/admission.mjs')).href);
     const admitted = await withPublicAdmission({ sourceRoot, validatorRoot: join(ROOT, '.deps/tjsv') });
     assert.equal(admitted.status, 'passed');

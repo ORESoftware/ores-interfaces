@@ -79,6 +79,35 @@ test('actual TJSV admission, artifact rejection and external packed-source consu
     assert.equal(admitted.status, 'passed');
     assert.equal(admitted.recordedCases, 31);
   });
+  await t.test('raw exponent JSON numbers are checked without JavaScript normalization', async () => {
+    const root = join(work, 'raw-number-syntax');
+    const valid = join(root, 'instances/PageQuery/valid');
+    const invalid = join(root, 'instances/PageQuery/invalid');
+    await mkdir(valid, { recursive: true });
+    await mkdir(invalid, { recursive: true });
+    const exponentMin = join(valid, 'integral-exponent-min.json');
+    const exponentMax = join(valid, 'integral-exponent-max.json');
+    const fractionalExponent = join(invalid, 'fractional-exponent.json');
+    const stringExponent = join(invalid, 'coercible-exponent-string.json');
+    await writeFile(exponentMin, '{"limit":1e0}\n');
+    await writeFile(exponentMax, '{"limit":1e2}\n');
+    await writeFile(fractionalExponent, '{"limit":1e-1}\n');
+    await writeFile(stringExponent, '{"limit":"1e1"}\n');
+    assert.equal(await readFile(exponentMin, 'utf8'), '{"limit":1e0}\n');
+    assert.equal(await readFile(exponentMax, 'utf8'), '{"limit":1e2}\n');
+    const report = join(root, 'report.json');
+    const ir = join(root, 'contract-ir.json');
+    const validator = join(ROOT, '.deps/tjsv/bin/typespec-json-schema-validator.mjs');
+    await execute(process.execPath, [validator, 'check',
+      `--typespec=${join(output, 'main.tsp')}`,
+      `--schema=${join(output, 'schema.json')}`,
+      `--instances=${join(root, 'instances')}`,
+      '--probes=true', '--max-probes=64', '--seal-object-schemas=false',
+      `--output-dir=${join(root, 'generated')}`,
+      `--report=${report}`, `--contract-ir=${ir}`, '--quiet']);
+    const receipt = JSON.parse(await readFile(report, 'utf8'));
+    assert.match(receipt.runId, /^[0-9a-f]{64}$/);
+  });
   await t.test('edited generated schema fails binding inspection', async () => {
     const path = join(output, 'schema.json');
     await chmod(path, 0o644);

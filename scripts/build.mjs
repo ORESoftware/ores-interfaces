@@ -1,19 +1,13 @@
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
 import { readFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { promisify } from 'node:util';
 import { DECLARATIONS, PUBLIC_FILES, json, readPolicy, sha256 } from './policy.mjs';
 import { withOwnedOutput } from './output.mjs';
+import { verifyCheckout } from './checkout.mjs';
+export { verifyCheckout } from './checkout.mjs';
 
-const exec = promisify(execFile);
 export const ROOT = resolve(import.meta.dirname, '..');
-export async function verifyCheckout(path, revision) {
-  assert.equal((await exec('git', ['-C', path, 'rev-parse', 'HEAD'])).stdout.trim(), revision, 'dependency checkout revision mismatch');
-  await exec('git', ['-C', path, 'diff', '--exit-code', 'HEAD']);
-  assert.equal((await exec('git', ['-C', path, 'ls-files', '--others', '--exclude-standard'])).stdout.trim(), '', 'untracked dependency sources are not admitted');
-}
 
 export async function buildSharedInterfaces(root = ROOT) {
   // Invalidate a previous owned package before reading configuration/dependencies.

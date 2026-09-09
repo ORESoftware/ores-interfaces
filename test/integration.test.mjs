@@ -102,7 +102,7 @@ test('actual TJSV admission, artifact rejection and external packed-source consu
       `--typespec=${join(output, 'main.tsp')}`,
       `--schema=${join(output, 'schema.json')}`,
       `--instances=${join(root, 'instances')}`,
-      '--probes=false', '--seal-object-schemas=false',
+      '--probes=true', '--max-probes=64', '--seal-object-schemas=false',
       `--output-dir=${join(root, 'generated')}`,
       `--report=${report}`, `--contract-ir=${ir}`, '--quiet']);
     const receipt = JSON.parse(await readFile(report, 'utf8'));

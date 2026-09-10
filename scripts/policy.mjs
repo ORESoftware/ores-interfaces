@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { assertPublicValidatorMirror, readTjsvLock, validateTjsvLock } from './tjsv-lock.mjs';
 
 export const DECLARATIONS = Object.freeze([
   'Ores.Validation.PageQuery', 'Ores.Validation.ProblemDetails',
@@ -11,7 +12,7 @@ export const PUBLIC_FILES = Object.freeze(['LICENSE.upstream', 'main.tsp', 'prov
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 export const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 
-export function validatePolicy(policy) {
+export function validatePolicy(policy, tjsvLock) {
   assert.equal(policy?.schema, 'ores.shared-interfaces-source/v1');
   assert.equal(policy.repository, 'ORESoftware/ores-interfaces');
   assert.equal(policy.source?.repository, 'ores-otel/ores-interfaces');
@@ -26,9 +27,20 @@ export function validatePolicy(policy) {
     browser: ['isomorphic'], node: ['isomorphic'], deno: ['isomorphic'],
     bun: ['isomorphic'], edge: ['isomorphic'], native: ['isomorphic'],
   }, 'public source package must never export a server scope');
+  validateTjsvLock(tjsvLock);
+  assertPublicValidatorMirror(policy, tjsvLock);
   return policy;
 }
 
+export async function readPolicyAndTjsvLock(root) {
+  const [policy, tjsvLock] = await Promise.all([
+    readFile(join(root, 'shared-interfaces.json'), 'utf8').then(JSON.parse),
+    readTjsvLock(root),
+  ]);
+  validatePolicy(policy, tjsvLock);
+  return Object.freeze({ policy, tjsvLock });
+}
+
 export async function readPolicy(root) {
-  return validatePolicy(JSON.parse(await readFile(join(root, 'shared-interfaces.json'), 'utf8')));
+  return (await readPolicyAndTjsvLock(root)).policy;
 }

@@ -1,0 +1,11 @@
+{
+  "key": "PORT",
+  "kind": "integer",
+  "required": false,
+  "secret": false,
+  "exposure": "argv-and-env",
+  "description": "HTTP listener port.",
+  "overrides": ["server.port"],
+  "environments": ["dev"],
+  "sources": []
+}

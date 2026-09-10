@@ -7,6 +7,7 @@
     "EnvOverrideDeclaration": {
       "type": "object",
       "additionalProperties": false,
+      "unevaluatedProperties": false,
       "required": ["name", "key", "kind", "required", "secret", "exposure", "description", "overrides", "environments"],
       "properties": {
         "name": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-z][a-z0-9_]*$"},
@@ -32,6 +33,7 @@
     "ResolvedEnvVariable": {
       "type": "object",
       "additionalProperties": false,
+      "unevaluatedProperties": false,
       "required": ["key", "kind", "required", "secret", "exposure", "description", "overrides", "environments", "sources"],
       "properties": {
         "key": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Z_][A-Z0-9_]*$"},
@@ -57,6 +59,7 @@
     "EnvManifest": {
       "type": "object",
       "additionalProperties": false,
+      "unevaluatedProperties": false,
       "required": ["schemaVersion", "variables"],
       "properties": {
         "schemaVersion": {"type": "string", "const": "ores.env-manifest.v1"},

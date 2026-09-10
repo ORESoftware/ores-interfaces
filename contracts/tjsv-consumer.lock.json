@@ -1,0 +1,63 @@
+{
+  "schema": "ores.tjsv-consumer-lock/v1",
+  "repository": "ORESoftware/typespec-json-schema-validator",
+  "revision": "85a0cd9a7dc113c6cdbb473f3b60786d032d8513",
+  "assuranceProfile": "shared-interface-parity-and-package-consumption",
+  "sourceRevisionBinding": "runtime-git-head",
+  "compatibilityPolicy": {
+    "inferenceFromGitAncestryAllowed": false,
+    "policyIssue": "https://github.com/ORESoftware/.github/issues/75",
+    "qualificationIssue": "https://github.com/ORESoftware/.github/issues/200"
+  },
+  "publicProvenanceMirror": {
+    "path": "shared-interfaces.json",
+    "repositoryPointer": "/validator/repository",
+    "revisionPointer": "/validator/commit"
+  },
+  "upstreamSourceLock": {
+    "path": "validation/tjsv/source-lock.json",
+    "schema": "ores.tjsv-source-lock/v1"
+  },
+  "evidenceSchemas": [
+    "ores.shared-public-admission/v1"
+  ],
+  "currentConsumers": [
+    {
+      "path": ".github/workflows/tjsv.yml",
+      "binding": "readTjsvLock"
+    },
+    {
+      "path": "docs/consuming.md",
+      "binding": "contracts/tjsv-consumer.lock.json"
+    },
+    {
+      "path": "package.json",
+      "binding": "./tjsv-lock"
+    },
+    {
+      "path": "scripts/build.mjs",
+      "binding": "readTjsvLock"
+    },
+    {
+      "path": "scripts/policy.mjs",
+      "binding": "readTjsvLock"
+    },
+    {
+      "path": "test/integration.test.mjs",
+      "binding": "tjsv-consumer.lock.json"
+    },
+    {
+      "path": "test/policy.test.mjs",
+      "binding": "readTjsvLock"
+    }
+  ],
+  "scanPolicy": {
+    "allowMutableRefs": false,
+    "allowShortShas": false,
+    "allowWrongRepository": false,
+    "allowDuplicateLocks": false,
+    "allowMirrorDrift": false
+  },
+  "selfDigestAlgorithm": "sha256-sorted-json-v1",
+  "selfDigest": "5d327810eb11f74e9433139ab055fb6b1aea02572dc3c1c9e29342cd275bd5d1"
+}

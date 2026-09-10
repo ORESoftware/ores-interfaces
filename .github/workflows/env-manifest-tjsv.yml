@@ -1,0 +1,84 @@
+name: env-manifest peer-authority admission
+
+on:
+  pull_request:
+    paths:
+      - 'contracts/env-manifest/**'
+      - 'docs/env-manifest-contract.md'
+      - '.github/workflows/env-manifest-tjsv.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'contracts/env-manifest/**'
+      - 'docs/env-manifest-contract.md'
+      - '.github/workflows/env-manifest-tjsv.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: env-manifest-tjsv-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  admission:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          show-progress: false
+      - name: Check out reviewed TJSV
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ORESoftware/typespec-json-schema-validator
+          ref: 85a0cd9a7dc113c6cdbb473f3b60786d032d8513
+          path: .deps/tjsv
+          persist-credentials: false
+          show-progress: false
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22.16.0'
+          package-manager-cache: false
+      - name: Install TJSV's locked compiler and flags-2-env adapter
+        run: npm ci --prefix .deps/tjsv --no-audit --no-fund
+      - name: Admit both authored authorities and fixture corpus
+        run: |
+          mkdir -p tmp/env-manifest
+          node .deps/tjsv/bin/typespec-json-schema-validator.mjs check \
+            --typespec=contracts/env-manifest/v1/main.tsp \
+            --schema=contracts/env-manifest/v1/authored.schema.json \
+            --instances=contracts/env-manifest/v1/instances \
+            --report=tmp/env-manifest/report.json \
+            --sarif=tmp/env-manifest/report.sarif \
+            --contract-ir=tmp/env-manifest/contract-ir.json \
+            --output-dir=tmp/env-manifest/generated \
+            --max-probes=128 \
+            --int64-strategy=string \
+            --seal-object-schemas=true \
+            --polymorphic-models-strategy=oneOf
+      - name: Require complete clean declaration evidence
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const report = JSON.parse(readFileSync('tmp/env-manifest/report.json', 'utf8'));
+          if (report.status !== 'passed') throw new Error(`TJSV status=${report.status}`);
+          const direct = report?.coverage?.directComparedDeclarations ?? report?.summary?.comparedDeclarations ?? [];
+          const names = Array.isArray(direct) ? direct.map(x => typeof x === 'string' ? x : x?.typespec ?? x?.name).filter(Boolean) : [];
+          if (names.length && names.length !== 3) throw new Error(`expected 3 compared declarations, got ${names.length}`);
+          if ((report.findings ?? []).length) throw new Error('unexpected TJSV findings');
+          if ((report?.differential?.refusals ?? 0) !== 0) throw new Error('differential validator refused evidence');
+          NODE
+      - name: Retain admission evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: env-manifest-${{ github.event.pull_request.head.sha || github.sha }}
+          path: tmp/env-manifest/
+          if-no-files-found: error
+          retention-days: 30

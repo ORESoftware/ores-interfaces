@@ -1,0 +1,12 @@
+{
+  "key": "PORT",
+  "kind": "integer",
+  "required": false,
+  "secret": false,
+  "exposure": "argv-and-env",
+  "description": "HTTP listener port.",
+  "overrides": ["server.port", "http.port"],
+  "environments": ["dev", "stage", "prod"],
+  "sources": [".ores-forms.toml", ".ores-mw.toml"],
+  "defaultValue": "8080"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "database_url",
+  "key": "database-url",
+  "kind": "url",
+  "required": true,
+  "secret": true,
+  "exposure": "env-only",
+  "description": "Invalid lower-case environment key.",
+  "overrides": ["server.database_url"],
+  "environments": ["prod"]
+}

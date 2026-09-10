@@ -1,0 +1,11 @@
+{
+  "name": "database_url",
+  "key": "DATABASE_URL",
+  "kind": "url",
+  "required": true,
+  "secret": true,
+  "exposure": "env-only",
+  "description": "Database credential URI supplied by the runtime secret boundary.",
+  "overrides": ["server.database_url"],
+  "environments": ["dev", "prod"]
+}

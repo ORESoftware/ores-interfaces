@@ -1,0 +1,23 @@
+name: Polyglot contract admission self-test
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/polyglot-contract-admission.yml'
+      - '.github/workflows/polyglot-contract-admission-selftest.yml'
+      - 'contracts/env-manifest/v1/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/polyglot-contract-admission.yml'
+      - '.github/workflows/polyglot-contract-admission-selftest.yml'
+      - 'contracts/env-manifest/v1/**'
+
+permissions:
+  contents: read
+
+jobs:
+  admission:
+    uses: ./.github/workflows/polyglot-contract-admission.yml
+    with:
+      minimum_pairs: 1

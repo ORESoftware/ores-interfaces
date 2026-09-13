@@ -1,0 +1,143 @@
+name: Polyglot contract admission
+
+on:
+  workflow_call:
+    inputs:
+      minimum_pairs:
+        description: Minimum number of ores-cli contracts.config.json peer pairs required
+        required: false
+        type: number
+        default: 1
+      language_manifest:
+        description: Optional repository-relative JSON file containing a languages array
+        required: false
+        type: string
+        default: ''
+      minimum_languages:
+        description: Minimum distinct languages required when language_manifest is supplied
+        required: false
+        type: number
+        default: 0
+
+permissions:
+  contents: read
+
+jobs:
+  peer-authority:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Verify exact caller head
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22.16.0'
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ORESoftware/typespec-json-schema-validator
+          ref: 66b53d05226e92162b355a00193fa5409357b9ff
+          path: .ores-tools/tjsv
+          persist-credentials: false
+      - name: Install immutable TJSV toolchain
+        run: npm ci --prefix .ores-tools/tjsv
+      - name: Discover ores-cli peer manifests
+        env:
+          MINIMUM_PAIRS: ${{ inputs.minimum_pairs }}
+          LANGUAGE_MANIFEST: ${{ inputs.language_manifest }}
+          MINIMUM_LANGUAGES: ${{ inputs.minimum_languages }}
+        run: |
+          mkdir -p tmp/tjsv-reports
+          node --input-type=module <<'NODE'
+          import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+          import { dirname, join, normalize, relative, resolve, sep } from 'node:path';
+
+          const root = process.cwd();
+          const excluded = new Set(['.git','.typespec-json-schema-validator','artifacts','build','dist','evidence','generated','node_modules','out','target','tmp']);
+          const configs = [];
+          const walk = (dir, depth = 0) => {
+            if (depth > 16) throw new Error(`contract walk exceeded depth at ${dir}`);
+            for (const entry of readdirSync(dir, { withFileTypes: true })) {
+              if (entry.isSymbolicLink()) throw new Error(`symlink is not admissible in contract tree: ${join(dir, entry.name)}`);
+              if (entry.isDirectory()) {
+                if (!excluded.has(entry.name)) walk(join(dir, entry.name), depth + 1);
+              } else if (entry.isFile() && entry.name === 'contracts.config.json') {
+                configs.push(join(dir, entry.name));
+              }
+            }
+          };
+          try { walk(join(root, 'contracts')); } catch (error) {
+            if (error?.code !== 'ENOENT') throw error;
+          }
+          configs.sort();
+          const minimum = Number(process.env.MINIMUM_PAIRS || '1');
+          if (!Number.isSafeInteger(minimum) || minimum < 0) throw new Error('minimum_pairs must be a non-negative integer');
+          if (configs.length < minimum) throw new Error(`expected at least ${minimum} contracts.config.json peer pair(s), found ${configs.length}`);
+
+          const rows = [];
+          for (const config of configs) {
+            const doc = JSON.parse(readFileSync(config, 'utf8'));
+            if (typeof doc.typespec !== 'string' || !doc.typespec.trim()) throw new Error(`${config}: missing typespec`);
+            if (typeof doc.jsonSchema !== 'string' || !doc.jsonSchema.trim()) throw new Error(`${config}: missing jsonSchema`);
+            const home = dirname(config);
+            const resolvePeer = (value, label) => {
+              const normalized = normalize(value);
+              if (normalized.startsWith('..' + sep) || normalized === '..' || resolve(home, normalized) === root) throw new Error(`${config}: unsafe ${label} path`);
+              if (normalized.split(/[\\/]+/).some(part => excluded.has(part))) throw new Error(`${config}: ${label} authority is under generated/evidence/build output`);
+              const full = resolve(home, normalized);
+              if (!full.startsWith(root + sep)) throw new Error(`${config}: ${label} escapes repository`);
+              if (!statSync(full).isFile()) throw new Error(`${config}: ${label} is not a regular file`);
+              return relative(root, full);
+            };
+            const tsp = resolvePeer(doc.typespec, 'TypeSpec');
+            const schema = resolvePeer(doc.jsonSchema, 'JSON Schema');
+            if (!tsp.endsWith('.tsp')) throw new Error(`${config}: TypeSpec authority must be .tsp`);
+            if (!schema.endsWith('.json')) throw new Error(`${config}: JSON Schema authority must be .json`);
+            if (tsp === schema) throw new Error(`${config}: peer authorities must be distinct files`);
+            const schemaDoc = JSON.parse(readFileSync(join(root, schema), 'utf8'));
+            if (schemaDoc.$schema !== 'https://json-schema.org/draft/2020-12/schema') throw new Error(`${schema}: must declare Draft 2020-12`);
+            const instances = join(home, 'instances');
+            rows.push([relative(root, config), tsp, schema, statSafeDirectory(instances) ? relative(root, instances) : ''].join('\t'));
+          }
+
+          function statSafeDirectory(path) {
+            try { return statSync(path).isDirectory(); } catch { return false; }
+          }
+
+          const manifest = process.env.LANGUAGE_MANIFEST?.trim();
+          if (manifest) {
+            const full = resolve(root, normalize(manifest));
+            if (!full.startsWith(root + sep)) throw new Error('language_manifest escapes repository');
+            const doc = JSON.parse(readFileSync(full, 'utf8'));
+            const languages = Array.isArray(doc) ? doc : doc.languages;
+            if (!Array.isArray(languages)) throw new Error('language_manifest must be an array or contain languages[]');
+            const names = [...new Set(languages.map(item => typeof item === 'string' ? item : item?.name).filter(Boolean))];
+            const min = Number(process.env.MINIMUM_LANGUAGES || '0');
+            if (!Number.isSafeInteger(min) || min < 0) throw new Error('minimum_languages must be a non-negative integer');
+            if (names.length < min) throw new Error(`language matrix has ${names.length} distinct languages; ${min} required`);
+            console.log(`language matrix: ${names.length} distinct runtime/language targets`);
+          }
+
+          writeFileSync('tmp/tjsv-pairs.tsv', rows.join('\n') + (rows.length ? '\n' : ''));
+          console.log(`ores-cli-compatible peer manifests: ${rows.length}`);
+          NODE
+      - name: Run TJSV over every declared peer authority
+        run: |
+          set -euo pipefail
+          i=0
+          while IFS=$'\t' read -r config typespec schema instances; do
+            [ -n "$config" ] || continue
+            i=$((i + 1))
+            args=(check "--typespec=$typespec" "--schema=$schema" "--report=tmp/tjsv-reports/$i.json")
+            if [ -n "$instances" ]; then args+=("--instances=$instances"); fi
+            node .ores-tools/tjsv/bin/typespec-json-schema-validator.mjs "${args[@]}"
+          done < tmp/tjsv-pairs.tsv
+      - name: Prove authored sources were not mutated
+        run: |
+          git diff --exit-code HEAD
+          git status --porcelain --untracked-files=no | test ! -s /dev/stdin

@@ -1,0 +1,5 @@
+{
+  "$comment": "Independent human-authored peer authorities. ores-cli validates this wiring; typespec-json-schema-validator owns semantic comparison and generated schemas remain evidence only.",
+  "typespec": "main.tsp",
+  "jsonSchema": "authored.schema.json"
+}

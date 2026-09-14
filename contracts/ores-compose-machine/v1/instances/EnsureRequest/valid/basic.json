@@ -1,0 +1,8 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "project": "zed-pkg",
+  "session": "pr-481",
+  "service": "api",
+  "revision": "refs/pull/481/head",
+  "rebuild": true
+}

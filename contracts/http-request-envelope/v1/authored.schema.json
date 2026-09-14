@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oresoftware.com/schemas/http-request-envelope/v1",
+  "title": "ORES HTTP Request Envelope v1",
+  "$comment": "Independent human-authored peer authority for contracts/http-request-envelope/v1/main.tsp.",
+  "$defs": {
+    "HeaderMap": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "JsonObjectMap": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "QueryMap": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      }
+    },
+    "DecodedRepresentation": {
+      "type": "string",
+      "enum": [
+        "application/json",
+        "application/problem+json",
+        "application/xml",
+        "application/msgpack",
+        "application/protobuf"
+      ]
+    },
+    "RequestAttributes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id", "trace_id"],
+      "properties": {
+        "request_id": { "type": "string" },
+        "trace_id": { "type": "string" },
+        "span_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "locale": { "type": "string" }
+      }
+    },
+    "HttpRequestEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["headers", "query", "raw_body_bytes", "attributes"],
+      "properties": {
+        "headers": { "$ref": "#/$defs/HeaderMap" },
+        "query": { "$ref": "#/$defs/QueryMap" },
+        "json_payload": { "$ref": "#/$defs/JsonObjectMap" },
+        "representation": { "$ref": "#/$defs/DecodedRepresentation" },
+        "raw_body_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "attributes": { "$ref": "#/$defs/RequestAttributes" }
+      }
+    }
+  },
+  "$ref": "#/$defs/HttpRequestEnvelope"
+}

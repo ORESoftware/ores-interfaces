@@ -24,19 +24,19 @@ alias QueryMap = Record<string[]>;
 /** Supported decoded application representations. */
 enum DecodedRepresentation {
   json: "application/json",
-  problemJson: "application/problem+json",
+  problem_json: "application/problem+json",
   xml: "application/xml",
-  messagePack: "application/msgpack",
+  message_pack: "application/msgpack",
   protobuf: "application/protobuf",
 }
 
 @TypeSpec.JsonSchema.extension("additionalProperties", false)
 model RequestAttributes {
-  requestId: string;
-  traceId: string;
-  spanId?: string;
-  tenantId?: string;
-  userId?: string;
+  request_id: string;
+  trace_id: string;
+  span_id?: string;
+  tenant_id?: string;
+  user_id?: string;
   locale?: string;
 }
 
@@ -49,13 +49,13 @@ model HttpRequestEnvelope {
   query: QueryMap;
 
   /** Present only when the selected decoded root is a JSON object. */
-  jsonPayload?: JsonObjectMap;
+  json_payload?: JsonObjectMap;
 
   /** Media type selected by content-type dispatch after normalization. */
   representation?: DecodedRepresentation;
 
   /** Bounded raw-body byte count after permitted inbound transforms. */
-  rawBodyBytes: uint64;
+  raw_body_bytes: uint64;
 
   /** Request-scoped identity/correlation metadata. */
   attributes: RequestAttributes;

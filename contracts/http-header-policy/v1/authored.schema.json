@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.oresoftware.com/http/header-policy/v1.json",
+  "title": "ORES HTTP application-header admission policy",
+  "description": "Independent JSON Schema authority for the derived per-service header admission manifest. Raw transport headers stay with protocol/auth/tracing middleware; business handlers receive only explicitly declared application headers.",
+  "$defs": {
+    "HeaderDeclaration": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": ["name", "value_kind", "required", "repeated", "description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^(?!(?:accept|authorization|proxy-authorization|cookie|set-cookie|host|content-length|content-type|transfer-encoding|connection|keep-alive|te|trailer|upgrade|forwarded|traceparent|tracestate|baggage)$)(?!x-forwarded-)(?!grpc-)[!#$%&'*+.^_`|~0-9a-z-]+$"
+        },
+        "value_kind": {
+          "anyOf": [
+            {"type": "string", "const": "string"},
+            {"type": "string", "const": "boolean"},
+            {"type": "string", "const": "integer"},
+            {"type": "string", "const": "number"},
+            {"type": "string", "const": "date-time"},
+            {"type": "string", "const": "string-list"}
+          ]
+        },
+        "required": {"type": "boolean"},
+        "repeated": {"type": "boolean"},
+        "description": {"type": "string", "minLength": 1, "maxLength": 512}
+      }
+    },
+    "OperationHeaderPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": ["operation_key", "accepted_headers", "unknown_application_headers"],
+      "properties": {
+        "operation_key": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z][A-Za-z0-9_]*$"},
+        "accepted_headers": {"type": "array", "maxItems": 64, "items": {"$ref": "#/$defs/HeaderDeclaration"}},
+        "unknown_application_headers": {"type": "string", "const": "strip"}
+      }
+    },
+    "ServiceHeaderPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": ["schema_version", "service", "routing_identity", "application_header_view", "runtime_owned_headers", "operations"],
+      "properties": {
+        "schema_version": {"type": "string", "const": "ores.http-header-policy.v1"},
+        "service": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+        "routing_identity": {"type": "string", "const": "method-and-path"},
+        "application_header_view": {"type": "string", "const": "declared-only"},
+        "runtime_owned_headers": {"type": "string", "const": "preserve-before-application-projection"},
+        "operations": {"type": "array", "maxItems": 1024, "items": {"$ref": "#/$defs/OperationHeaderPolicy"}}
+      }
+    }
+  }
+}

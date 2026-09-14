@@ -114,6 +114,7 @@ model MachineErrorResponse {
     | "lazy_start_denied"
     | "queue_full"
     | "machine_busy"
+    | "job_not_found"
     | "stale_generation"
     | "activation_failed"
     | "ingress_unavailable";

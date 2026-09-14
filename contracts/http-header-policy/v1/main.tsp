@@ -17,7 +17,7 @@ namespace Ores.Http.HeaderPolicy;
 model HeaderDeclaration {
   @minLength(1)
   @maxLength(128)
-  @pattern("^(?!(?:accept|authorization|proxy-authorization|cookie|set-cookie|host|content-length|content-type|transfer-encoding|connection|keep-alive|te|trailer|upgrade|forwarded|traceparent|tracestate|baggage)$)(?!x-forwarded-)(?!grpc-)[!#$%&'*+.^_`|~0-9a-z-]+$")
+  @pattern("^(?!(?:authorization|baggage|connection|content-encoding|content-length|content-type|cookie|forwarded|host|keep-alive|proxy-authenticate|proxy-authorization|set-cookie|te|traceparent|tracestate|trailer|transfer-encoding|upgrade|x-real-ip)$)(?!x-forwarded-)(?!grpc-)[!#$%&'*+.^_`|~0-9a-z-]+$")
   name: string;
 
   value_kind: "string" | "boolean" | "integer" | "number" | "date-time" | "string-list";

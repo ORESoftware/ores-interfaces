@@ -95,6 +95,7 @@
           {"type": "string", "const": "lazy_start_denied"},
           {"type": "string", "const": "queue_full"},
           {"type": "string", "const": "machine_busy"},
+          {"type": "string", "const": "job_not_found"},
           {"type": "string", "const": "stale_generation"},
           {"type": "string", "const": "activation_failed"},
           {"type": "string", "const": "ingress_unavailable"}

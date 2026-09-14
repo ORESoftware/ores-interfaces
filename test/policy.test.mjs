@@ -5,7 +5,7 @@ import { DECLARATIONS, validatePolicy } from '../scripts/policy.mjs';
 const policy = JSON.parse(await readFile(new URL('../shared-interfaces.json', import.meta.url), 'utf8'));
 test('only the complete isomorphic shared surface is admitted', () => {
   assert.equal(validatePolicy(policy), policy);
-  assert.equal(DECLARATIONS.length, 4);
+  assert.equal(DECLARATIONS.length, 6);
 });
 for (const [name, mutate] of [
   ['unversioned policy', (p) => { p.schema = 'unknown'; }],

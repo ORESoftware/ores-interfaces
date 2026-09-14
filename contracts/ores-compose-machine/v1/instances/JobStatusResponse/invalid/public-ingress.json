@@ -1,0 +1,15 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "job_id": "42",
+  "state": "ready",
+  "active": {
+    "project": "zed-pkg",
+    "session": "pr-481",
+    "revision": "a1b2c3d4",
+    "generation": "7",
+    "ingress": {
+      "kind": "tcp",
+      "authority": "8.8.8.8:443"
+    }
+  }
+}

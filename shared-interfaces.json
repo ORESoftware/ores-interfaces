@@ -5,9 +5,9 @@
   "validator": { "repository": "ORESoftware/typespec-json-schema-validator", "commit": "1614779275115258db73b92c938313e8ae437936" },
   "authorityModel": "independent-typespec-and-json-schema-peers",
   "authorityTransfer": false,
-  "expectedDeclarations": ["Ores.Validation.PageQuery", "Ores.Validation.ProblemDetails", "Ores.Validation.PublicValidationContract", "Ores.Validation.RequestMeta"],
+  "expectedDeclarations": ["Ores.Validation.GitHubActionsBuildLogEvent", "Ores.Validation.GitHubActionsLogStream", "Ores.Validation.PageQuery", "Ores.Validation.ProblemDetails", "Ores.Validation.PublicValidationContract", "Ores.Validation.RequestMeta"],
   "scopes": {
-    "isomorphic": ["Ores.Validation.PageQuery", "Ores.Validation.ProblemDetails", "Ores.Validation.PublicValidationContract", "Ores.Validation.RequestMeta"],
+    "isomorphic": ["Ores.Validation.GitHubActionsBuildLogEvent", "Ores.Validation.GitHubActionsLogStream", "Ores.Validation.PageQuery", "Ores.Validation.ProblemDetails", "Ores.Validation.PublicValidationContract", "Ores.Validation.RequestMeta"],
     "client": [], "edge": [], "server": []
   },
   "runtimeExports": { "browser": ["isomorphic"], "node": ["isomorphic"], "deno": ["isomorphic"], "bun": ["isomorphic"], "edge": ["isomorphic"], "native": ["isomorphic"] }

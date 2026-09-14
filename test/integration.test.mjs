@@ -17,8 +17,15 @@ const expectedFiles = [
   'generated/public/provenance.json', 'generated/public/schema.json',
 ].sort();
 
+async function expectedRecordedCases() {
+  const corpus = JSON.parse(await readFile(join(ROOT, '.deps/compat/validation/tjsv/public-corpus.json'), 'utf8'));
+  assert.ok(Array.isArray(corpus) && corpus.length > 0, 'pinned public corpus must be non-empty');
+  return corpus.length;
+}
+
 test('actual TJSV admission, artifact rejection and external packed-source consumer', async (t) => {
   const policy = await readPolicy(ROOT);
+  const recordedCases = await expectedRecordedCases();
   const work = await mkdtemp(join(tmpdir(), 'ores-hub-integration-'));
   t.after(() => rm(work, { recursive: true, force: true }));
   await buildSharedInterfaces(); // Missing dependency/compiler is a failure, never skip.
@@ -31,7 +38,7 @@ test('actual TJSV admission, artifact rejection and external packed-source consu
       await readFile(join(ROOT, '.deps/compat/validation/public-contracts.v1.json'), 'utf8'));
     const provenance = JSON.parse(await readFile(join(output, 'provenance.json'), 'utf8'));
     assert.deepEqual(provenance.admission.declarations, DECLARATIONS);
-    assert.equal(provenance.admission.recordedCases, 31);
+    assert.equal(provenance.admission.recordedCases, recordedCases);
     assert.equal(provenance.admission.status, 'passed');
     assert.deepEqual(provenance.policy, policy);
   });
@@ -78,7 +85,7 @@ test('actual TJSV admission, artifact rejection and external packed-source consu
     const { withPublicAdmission } = await import(pathToFileURL(join(ROOT, '.deps/compat/validation/tjsv/admission.mjs')).href);
     const admitted = await withPublicAdmission({ sourceRoot, validatorRoot: join(ROOT, '.deps/tjsv') });
     assert.equal(admitted.status, 'passed');
-    assert.equal(admitted.recordedCases, 31);
+    assert.equal(admitted.recordedCases, recordedCases);
   });
   await t.test('raw exponent JSON numbers are checked without JavaScript normalization', async () => {
     const root = join(work, 'raw-number-syntax');

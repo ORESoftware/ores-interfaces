@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: ORESoftware/typespec-json-schema-validator
-          ref: 66b53d05226e92162b355a00193fa5409357b9ff
+          ref: 1614779275115258db73b92c938313e8ae437936
           path: .ores-tools/tjsv
           persist-credentials: false
       - name: Install immutable TJSV toolchain

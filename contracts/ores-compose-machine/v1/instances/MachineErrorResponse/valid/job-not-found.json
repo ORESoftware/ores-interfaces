@@ -1,0 +1,6 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "code": "job_not_found",
+  "message": "job does not exist",
+  "job_id": "999"
+}

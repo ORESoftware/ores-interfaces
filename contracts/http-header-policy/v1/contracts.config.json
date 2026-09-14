@@ -1,0 +1,5 @@
+{
+  "$comment": "Independent human-authored peer authorities. api-docs projects per-operation header_params into this policy shape; TJSV owns semantic comparison and any generated schema remains evidence only.",
+  "typespec": "main.tsp",
+  "jsonSchema": "authored.schema.json"
+}

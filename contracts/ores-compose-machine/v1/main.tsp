@@ -30,7 +30,7 @@ model EnsureRequest {
 
   @minLength(1)
   @maxLength(255)
-  @pattern("^[A-Za-z0-9._/-]+$")
+  @pattern("^(?![-/])(?!.*\\.\\.)(?!.*//)(?!.*@\\{)(?!.*\\/\\.)(?!.*\\.lock(?:/|$))[A-Za-z0-9._/-]*[A-Za-z0-9_/-]$")
   revision: string;
 
   rebuild: boolean;
@@ -73,7 +73,7 @@ model ActiveSystem {
 
   @minLength(1)
   @maxLength(255)
-  @pattern("^[A-Za-z0-9._/-]+$")
+  @pattern("^(?![-/])(?!.*\\.\\.)(?!.*//)(?!.*@\\{)(?!.*\\/\\.)(?!.*\\.lock(?:/|$))[A-Za-z0-9._/-]*[A-Za-z0-9_/-]$")
   revision: string;
 
   @minLength(1)

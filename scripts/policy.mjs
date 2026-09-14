@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 export const DECLARATIONS = Object.freeze([
+  'Ores.Validation.GitHubActionsBuildLogEvent', 'Ores.Validation.GitHubActionsLogStream',
   'Ores.Validation.PageQuery', 'Ores.Validation.ProblemDetails',
   'Ores.Validation.PublicValidationContract', 'Ores.Validation.RequestMeta',
 ]);

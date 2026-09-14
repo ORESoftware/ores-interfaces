@@ -1,0 +1,5 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "code": "queue_full",
+  "message": "serialized machine job queue is full"
+}

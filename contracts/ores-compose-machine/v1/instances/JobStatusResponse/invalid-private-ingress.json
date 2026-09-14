@@ -1,0 +1,1 @@
+{"schema_version":"ores.compose.machine.v1","job_id":"8","state":"ready","active":{"project":"demo","session":"dev","revision":"main","generation":"1","ingress":{"kind":"tcp","authority":"10.0.0.2:4000"}}}

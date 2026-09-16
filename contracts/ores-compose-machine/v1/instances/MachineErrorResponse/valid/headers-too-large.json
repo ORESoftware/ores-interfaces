@@ -1,0 +1,5 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "code": "headers_too_large",
+  "message": "machine control request headers exceed the byte limit"
+}

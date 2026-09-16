@@ -108,6 +108,36 @@
         "job_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"}
       }
     },
+    "SwitchPhase": {
+      "type": "string",
+      "enum": [
+        "confirm_ready",
+        "drain_active",
+        "stop_active",
+        "fetch_revision",
+        "checkout_revision",
+        "rebuild",
+        "configure_network",
+        "start_system",
+        "await_readiness",
+        "publish_ingress"
+      ]
+    },
+    "SwitchFailureCode": {
+      "type": "string",
+      "enum": [
+        "confirm_ready_failed",
+        "drain_active_failed",
+        "stop_active_failed",
+        "fetch_revision_failed",
+        "checkout_revision_failed",
+        "rebuild_failed",
+        "configure_network_failed",
+        "start_system_failed",
+        "await_readiness_failed",
+        "publish_ingress_failed"
+      ]
+    },
     "SwitchFailureDiagnostic": {
       "type": "object",
       "additionalProperties": false,
@@ -117,30 +147,8 @@
         "schema_version": {"type": "string", "const": "ores.compose.machine.v1"},
         "job_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
         "generation": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
-        "phase": {"anyOf": [
-          {"type": "string", "const": "confirm_ready"},
-          {"type": "string", "const": "drain_active"},
-          {"type": "string", "const": "stop_active"},
-          {"type": "string", "const": "fetch_revision"},
-          {"type": "string", "const": "checkout_revision"},
-          {"type": "string", "const": "rebuild"},
-          {"type": "string", "const": "configure_network"},
-          {"type": "string", "const": "start_system"},
-          {"type": "string", "const": "await_readiness"},
-          {"type": "string", "const": "publish_ingress"}
-        ]},
-        "code": {"anyOf": [
-          {"type": "string", "const": "confirm_ready_failed"},
-          {"type": "string", "const": "drain_active_failed"},
-          {"type": "string", "const": "stop_active_failed"},
-          {"type": "string", "const": "fetch_revision_failed"},
-          {"type": "string", "const": "checkout_revision_failed"},
-          {"type": "string", "const": "rebuild_failed"},
-          {"type": "string", "const": "configure_network_failed"},
-          {"type": "string", "const": "start_system_failed"},
-          {"type": "string", "const": "await_readiness_failed"},
-          {"type": "string", "const": "publish_ingress_failed"}
-        ]},
+        "phase": {"$ref": "#/$defs/SwitchPhase"},
+        "code": {"$ref": "#/$defs/SwitchFailureCode"},
         "message": {"type": "string", "minLength": 1, "maxLength": 64}
       }
     }

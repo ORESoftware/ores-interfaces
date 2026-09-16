@@ -13,8 +13,8 @@ const exec = promisify(execFile);
 const execute = (command, args, cwd = ROOT) => exec(command, args, { cwd, timeout: 180000, maxBuffer: 4 * 1024 * 1024 });
 const expectedFiles = [
   'LICENSE', 'README.md', 'THIRD_PARTY_NOTICES.md', 'package.json', 'shared-interfaces.json',
-  'generated/public/LICENSE.upstream', 'generated/public/main.tsp',
-  'generated/public/provenance.json', 'generated/public/schema.json',
+  'generated/public/LICENSE.upstream', 'generated/public/interface-release.json',
+  'generated/public/main.tsp', 'generated/public/provenance.json', 'generated/public/schema.json',
 ].sort();
 
 async function expectedRecordedCases() {
@@ -28,10 +28,12 @@ test('actual TJSV admission, artifact rejection and external packed-source consu
   const recordedCases = await expectedRecordedCases();
   const work = await mkdtemp(join(tmpdir(), 'ores-hub-integration-'));
   t.after(() => rm(work, { recursive: true, force: true }));
-  await buildSharedInterfaces(); // Missing dependency/compiler is a failure, never skip.
+  await buildSharedInterfaces();
   const output = join(ROOT, 'generated/public');
   await t.test('exports both admitted independent sources byte for byte', async () => {
-    assert.equal((await auditBuiltPackage()).bindingsVerified, true);
+    const audit = await auditBuiltPackage();
+    assert.equal(audit.bindingsVerified, true);
+    assert.match(audit.releaseId, /^[0-9a-f]{64}$/);
     assert.equal(await readFile(join(output, 'main.tsp'), 'utf8'),
       await readFile(join(ROOT, '.deps/compat/validation/typespec/validation.tsp'), 'utf8'));
     assert.equal(await readFile(join(output, 'schema.json'), 'utf8'),
@@ -41,6 +43,10 @@ test('actual TJSV admission, artifact rejection and external packed-source consu
     assert.equal(provenance.admission.recordedCases, recordedCases);
     assert.equal(provenance.admission.status, 'passed');
     assert.deepEqual(provenance.policy, policy);
+    const release = JSON.parse(await readFile(join(output, 'interface-release.json'), 'utf8'));
+    assert.equal(release.schema, 'ores.interface-release/v1');
+    assert.equal(release.releaseId, audit.releaseId);
+    assert.deepEqual(release.declarations, DECLARATIONS);
   });
   await t.test('npm prepack invokes real admission and ships only public interface files', async () => {
     await execute('npm', ['pack', '--pack-destination', work]);
@@ -53,17 +59,18 @@ test('actual TJSV admission, artifact rejection and external packed-source consu
     const installed = join(consumer, 'node_modules/@oresoftware/ores-interfaces');
     await mkdir(installed, { recursive: true });
     await execute('tar', ['-xzf', archive, '--strip-components=1', '-C', installed]);
-    // Exercise real package exports from a different cwd with no repo-local imports.
     await execute(process.execPath, ['--input-type=module', '-e', `
       import assert from 'node:assert/strict';
       import schema from '@oresoftware/ores-interfaces/schema' with { type: 'json' };
       import provenance from '@oresoftware/ores-interfaces/provenance' with { type: 'json' };
+      import release from '@oresoftware/ores-interfaces/release' with { type: 'json' };
       assert.equal(schema.$defs.PageQuery.required.includes('limit'), true);
       assert.equal(Object.hasOwn(schema.$defs, 'TrustedActor'), false);
       assert.equal(provenance.editableAuthority, false);
+      assert.equal(release.schema, 'ores.interface-release/v1');
+      assert.match(release.releaseId, /^[0-9a-f]{64}$/);
       assert.ok(import.meta.resolve('@oresoftware/ores-interfaces/typespec').endsWith('/main.tsp'));
     `], consumer);
-    // Exercise tspMain through an ordinary package import with pinned peer libraries.
     await mkdir(join(consumer, 'node_modules/@typespec'), { recursive: true });
     for (const name of ['compiler', 'json-schema'])
       await symlink(join(ROOT, '.deps/tjsv/node_modules/@typespec', name), join(consumer, 'node_modules/@typespec', name), 'dir');
@@ -73,8 +80,6 @@ test('actual TJSV admission, artifact rejection and external packed-source consu
     await execute(tsp, ['compile', entry, '--no-emit', '--warn-as-error'], consumer);
     await writeFile(entry, 'import "@oresoftware/ores-interfaces";\nmodel Forbidden { actor: Ores.Validation.TrustedActor; }\n');
     await assert.rejects(execute(tsp, ['compile', entry, '--no-emit', '--warn-as-error'], consumer));
-    // Recompile the actual packed source bytes against each other and the pinned
-    // recorded corpus/source-lock closure, not merely a successful JSON.parse or package listing.
     const sourceRoot = join(work, 'packed-contract');
     await mkdir(join(sourceRoot, 'validation/typespec'), { recursive: true });
     await mkdir(join(sourceRoot, 'validation/tjsv'), { recursive: true });

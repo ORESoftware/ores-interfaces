@@ -98,7 +98,11 @@
           {"type": "string", "const": "job_not_found"},
           {"type": "string", "const": "stale_generation"},
           {"type": "string", "const": "activation_failed"},
-          {"type": "string", "const": "ingress_unavailable"}
+          {"type": "string", "const": "ingress_unavailable"},
+          {"type": "string", "const": "internal_state_poisoned"},
+          {"type": "string", "const": "server_busy"},
+          {"type": "string", "const": "request_timeout"},
+          {"type": "string", "const": "headers_too_large"}
         ]},
         "message": {"type": "string", "minLength": 1, "maxLength": 512},
         "job_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"}

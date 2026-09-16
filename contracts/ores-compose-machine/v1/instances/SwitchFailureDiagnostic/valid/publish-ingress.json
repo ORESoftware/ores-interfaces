@@ -1,0 +1,8 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "job_id": "18446744073709551615",
+  "generation": "18446744073709551615",
+  "phase": "publish_ingress",
+  "code": "publish_ingress_failed",
+  "message": "ingress publication failed"
+}

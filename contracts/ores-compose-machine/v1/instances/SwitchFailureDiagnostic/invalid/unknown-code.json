@@ -1,0 +1,8 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "job_id": "17",
+  "generation": "3",
+  "phase": "rebuild",
+  "code": "build_command_failed",
+  "message": "service rebuild failed"
+}

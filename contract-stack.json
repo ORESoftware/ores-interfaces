@@ -13,7 +13,7 @@
     },
     "persistenceConvergence": {
       "repository": "ORESoftware/ores-contracts",
-      "commit": "fef0b716d950f717c240504bd85d6f1732a383a0",
+      "commit": "62a99fbb64f6f449a0ff6ed27ff11427cfa931ad",
       "requiredFor": ["declared-persistence-subset"]
     }
   },

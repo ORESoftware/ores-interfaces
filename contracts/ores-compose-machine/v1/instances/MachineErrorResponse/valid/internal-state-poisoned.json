@@ -1,0 +1,5 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "code": "internal_state_poisoned",
+  "message": "machine control state is unavailable"
+}

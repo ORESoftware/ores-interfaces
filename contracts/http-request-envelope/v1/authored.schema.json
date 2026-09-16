@@ -6,18 +6,24 @@
   "$defs": {
     "HeaderMap": {
       "type": "object",
-      "additionalProperties": { "type": "string" }
+      "properties": {},
+      "additionalProperties": { "type": "string" },
+      "unevaluatedProperties": false
     },
     "JsonObjectMap": {
       "type": "object",
-      "additionalProperties": true
+      "properties": {},
+      "additionalProperties": true,
+      "unevaluatedProperties": false
     },
     "QueryMap": {
       "type": "object",
+      "properties": {},
       "additionalProperties": {
         "type": "array",
         "items": { "type": "string" }
-      }
+      },
+      "unevaluatedProperties": false
     },
     "DecodedRepresentation": {
       "type": "string",
@@ -56,7 +62,7 @@
         "raw_body_bytes": {
           "type": "integer",
           "minimum": 0,
-          "maximum": 18446744073709551615
+          "maximum": 4294967295
         },
         "attributes": { "$ref": "#/$defs/RequestAttributes" }
       }

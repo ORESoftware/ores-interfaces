@@ -1,0 +1,25 @@
+{
+  "schema": "ores.contract-stack/v1",
+  "repository": "ORESoftware/ores-interfaces",
+  "authority": {
+    "role": "shared-contract-registry",
+    "model": "independent-typespec-and-json-schema-peers"
+  },
+  "tools": {
+    "wireAndRuntimeConformance": {
+      "repository": "ORESoftware/typespec-json-schema-validator",
+      "commit": "dd3418aa243198619abfd6106cea3540ef0bbb4f",
+      "requiredFor": ["wire-parity", "contract-ir", "runtime-conformance"]
+    },
+    "persistenceConvergence": {
+      "repository": "ORESoftware/ores-contracts",
+      "commit": "fef0b716d950f717c240504bd85d6f1732a383a0",
+      "requiredFor": ["declared-persistence-subset"]
+    }
+  },
+  "orchestrator": {
+    "repository": "ORESoftware/ores-cli",
+    "role": "resolved-version-policy-only"
+  },
+  "legacyCompatibilityManifest": "shared-interfaces.json"
+}

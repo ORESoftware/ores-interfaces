@@ -1,0 +1,84 @@
+name: ores-compose-machine-contract
+
+on:
+  pull_request:
+    paths:
+      - 'contracts/ores-compose-machine/v1/**'
+      - '.github/workflows/ores-compose-machine-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'contracts/ores-compose-machine/v1/**'
+      - '.github/workflows/ores-compose-machine-contract.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ores-compose-machine-contract-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  admission:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      TJSV_SHA: b2c4810400625829114a56087ad33937caac735a
+      CONTRACT_ROOT: contracts/ores-compose-machine/v1
+    steps:
+      - name: Check out exact reviewed authority revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Assert exact authority revision
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          printf '%s\n' "$EXPECTED_SHA" > machine-contract-authority.sha
+      - name: Install reviewed Node runtime
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22.16.0'
+      - name: Execute TypeSpec and JSON Schema peer admission
+        run: |
+          set -euo pipefail
+          mkdir -p target/machine-contract-generated
+          npx --yes \
+            --package="https://github.com/ORESoftware/typespec-json-schema-validator/archive/${TJSV_SHA}.tar.gz" \
+            tjsv check \
+            --typespec="$CONTRACT_ROOT/main.tsp" \
+            --schema="$CONTRACT_ROOT/authored.schema.json" \
+            --instances="$CONTRACT_ROOT/instances" \
+            --output-dir=target/machine-contract-generated \
+            --report=target/machine-contract-report.json \
+            --contract-ir=target/machine-contract-ir.json \
+            --quiet
+      - name: Require passed differential corpus evidence
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFile } from 'node:fs/promises';
+          const report = JSON.parse(await readFile('target/machine-contract-report.json', 'utf8'));
+          if (report.status !== 'passed') throw new Error(`unexpected status: ${report.status}`);
+          if (report.zeroUnexplainedFindings !== true) throw new Error('unexplained TJSV findings remain');
+          if (report.coverage?.differentialInstanceValidation !== true) throw new Error('instance differential validation did not run');
+          if ((report.differential?.summary?.corpusInstances ?? 0) < 1) throw new Error('machine instance corpus did not execute');
+          if ((report.differential?.summary?.divergences ?? -1) !== 0) throw new Error('machine contract authorities diverged on corpus instances');
+          if ((report.counts?.differentialFindings ?? -1) !== 0) throw new Error('machine contract differential findings remain');
+          NODE
+      - name: Require clean authored authority checkout
+        run: git diff --exit-code HEAD
+      - name: Retain machine contract evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ores-compose-machine-contract-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            machine-contract-authority.sha
+            target/machine-contract-report.json
+            target/machine-contract-ir.json
+          if-no-files-found: warn
+          retention-days: 14

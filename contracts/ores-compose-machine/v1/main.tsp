@@ -132,3 +132,51 @@ model MachineErrorResponse {
   @pattern("^[1-9][0-9]{0,19}$")
   job_id?: string;
 }
+
+enum SwitchPhase {
+  confirmReady: "confirm_ready",
+  drainActive: "drain_active",
+  stopActive: "stop_active",
+  fetchRevision: "fetch_revision",
+  checkoutRevision: "checkout_revision",
+  rebuild: "rebuild",
+  configureNetwork: "configure_network",
+  startSystem: "start_system",
+  awaitReadiness: "await_readiness",
+  publishIngress: "publish_ingress",
+}
+
+enum SwitchFailureCode {
+  confirmReadyFailed: "confirm_ready_failed",
+  drainActiveFailed: "drain_active_failed",
+  stopActiveFailed: "stop_active_failed",
+  fetchRevisionFailed: "fetch_revision_failed",
+  checkoutRevisionFailed: "checkout_revision_failed",
+  rebuildFailed: "rebuild_failed",
+  configureNetworkFailed: "configure_network_failed",
+  startSystemFailed: "start_system_failed",
+  awaitReadinessFailed: "await_readiness_failed",
+  publishIngressFailed: "publish_ingress_failed",
+}
+
+@TypeSpec.JsonSchema.extension("additionalProperties", false)
+model SwitchFailureDiagnostic {
+  schema_version: "ores.compose.machine.v1";
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  job_id: string;
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  generation: string;
+
+  phase: SwitchPhase;
+  code: SwitchFailureCode;
+
+  @minLength(1)
+  @maxLength(64)
+  message: string;
+}

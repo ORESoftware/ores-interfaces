@@ -8,7 +8,9 @@ export const DECLARATIONS = Object.freeze([
   'Ores.Validation.PageQuery', 'Ores.Validation.ProblemDetails',
   'Ores.Validation.PublicValidationContract', 'Ores.Validation.RequestMeta',
 ]);
-export const PUBLIC_FILES = Object.freeze(['LICENSE.upstream', 'main.tsp', 'provenance.json', 'schema.json']);
+export const PUBLIC_FILES = Object.freeze([
+  'LICENSE.upstream', 'interface-release.json', 'main.tsp', 'provenance.json', 'schema.json',
+]);
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 export const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 

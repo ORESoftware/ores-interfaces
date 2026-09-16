@@ -32,6 +32,7 @@
     "RequestAttributes": {
       "type": "object",
       "additionalProperties": false,
+      "unevaluatedProperties": false,
       "required": ["request_id", "trace_id"],
       "properties": {
         "request_id": { "type": "string" },
@@ -45,6 +46,7 @@
     "HttpRequestEnvelope": {
       "type": "object",
       "additionalProperties": false,
+      "unevaluatedProperties": false,
       "required": ["headers", "query", "raw_body_bytes", "attributes"],
       "properties": {
         "headers": { "$ref": "#/$defs/HeaderMap" },

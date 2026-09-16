@@ -9,17 +9,23 @@ import "@typespec/json-schema";
 namespace Ores.Interfaces.HttpRequestEnvelope.V1;
 
 /** Canonical lowercase HTTP header names mapped to unfolded string values. */
-alias HeaderMap = Record<string>;
+model HeaderMap {
+  [key: string]: string;
+}
 
 /**
  * JSON-object payload map. `unknown` is intentionally the JSON value slot:
  * generated/runtime language bindings narrow it to their native JSON value
  * union while preserving string keys.
  */
-alias JsonObjectMap = Record<unknown>;
+model JsonObjectMap {
+  [key: string]: unknown;
+}
 
 /** Query values preserve repeated keys without framework-specific classes. */
-alias QueryMap = Record<string[]>;
+model QueryMap {
+  [key: string]: string[];
+}
 
 /** Supported decoded application representations. */
 enum DecodedRepresentation {
@@ -54,8 +60,12 @@ model HttpRequestEnvelope {
   /** Media type selected by content-type dispatch after normalization. */
   representation?: DecodedRepresentation;
 
-  /** Bounded raw-body byte count after permitted inbound transforms. */
-  raw_body_bytes: uint64;
+  /**
+   * Bounded raw-body byte count after permitted inbound transforms.
+   * Four GiB is already above the supported per-request operating envelope and
+   * keeps the JSON representation exact across JavaScript runtimes.
+   */
+  raw_body_bytes: uint32;
 
   /** Request-scoped identity/correlation metadata. */
   attributes: RequestAttributes;

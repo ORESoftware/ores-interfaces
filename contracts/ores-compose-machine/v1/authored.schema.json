@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.oresoftware.com/compose/machine/v1.json",
   "title": "ORES Compose machine control contract v1",
-  "description": "Independent JSON Schema authority for serialized ores-compose machine ensure, queue status, readiness, and error messages.",
+  "description": "Independent JSON Schema authority for serialized ores-compose machine ensure, queue status, readiness, error, and switch-failure diagnostic messages.",
   "$defs": {
     "EnsureRequest": {
       "type": "object",
@@ -106,6 +106,42 @@
         ]},
         "message": {"type": "string", "minLength": 1, "maxLength": 512},
         "job_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"}
+      }
+    },
+    "SwitchFailureDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": ["schema_version", "job_id", "generation", "phase", "code", "message"],
+      "properties": {
+        "schema_version": {"type": "string", "const": "ores.compose.machine.v1"},
+        "job_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "generation": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "phase": {"anyOf": [
+          {"type": "string", "const": "confirm_ready"},
+          {"type": "string", "const": "drain_active"},
+          {"type": "string", "const": "stop_active"},
+          {"type": "string", "const": "fetch_revision"},
+          {"type": "string", "const": "checkout_revision"},
+          {"type": "string", "const": "rebuild"},
+          {"type": "string", "const": "configure_network"},
+          {"type": "string", "const": "start_system"},
+          {"type": "string", "const": "await_readiness"},
+          {"type": "string", "const": "publish_ingress"}
+        ]},
+        "code": {"anyOf": [
+          {"type": "string", "const": "confirm_ready_failed"},
+          {"type": "string", "const": "drain_active_failed"},
+          {"type": "string", "const": "stop_active_failed"},
+          {"type": "string", "const": "fetch_revision_failed"},
+          {"type": "string", "const": "checkout_revision_failed"},
+          {"type": "string", "const": "rebuild_failed"},
+          {"type": "string", "const": "configure_network_failed"},
+          {"type": "string", "const": "start_system_failed"},
+          {"type": "string", "const": "await_readiness_failed"},
+          {"type": "string", "const": "publish_ingress_failed"}
+        ]},
+        "message": {"type": "string", "minLength": 1, "maxLength": 64}
       }
     }
   }

@@ -117,7 +117,11 @@ model MachineErrorResponse {
     | "job_not_found"
     | "stale_generation"
     | "activation_failed"
-    | "ingress_unavailable";
+    | "ingress_unavailable"
+    | "internal_state_poisoned"
+    | "server_busy"
+    | "request_timeout"
+    | "headers_too_large";
 
   @minLength(1)
   @maxLength(512)

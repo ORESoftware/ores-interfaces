@@ -1,0 +1,5 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "code": "server_busy",
+  "message": "machine control request concurrency limit reached"
+}

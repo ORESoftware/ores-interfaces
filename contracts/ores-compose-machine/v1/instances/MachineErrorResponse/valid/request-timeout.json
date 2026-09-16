@@ -1,0 +1,5 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "code": "request_timeout",
+  "message": "machine control request exceeded its deadline"
+}

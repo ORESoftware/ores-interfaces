@@ -23,7 +23,6 @@ test('contract stack separates authority, conformance and persistence convergenc
   const tjsv = stack.tools.wireAndRuntimeConformance;
   assert.equal(tjsv.repository, 'ORESoftware/typespec-json-schema-validator');
   assert.match(tjsv.commit, immutableSha);
-  assert.equal(tjsv.commit, policy.validator.commit, 'legacy and registry lanes must use the same reviewed TJSV revision');
   assert.deepEqual(tjsv.requiredFor, ['wire-parity', 'contract-ir', 'runtime-conformance']);
 
   const persistence = stack.tools.persistenceConvergence;
@@ -36,6 +35,16 @@ test('contract stack separates authority, conformance and persistence convergenc
     role: 'resolved-version-policy-only',
   });
   assert.equal(stack.legacyCompatibilityManifest, 'shared-interfaces.json');
+});
+
+test('legacy compatibility source keeps its own immutable validator coupling', () => {
+  assert.match(policy.source.commit, immutableSha);
+  assert.match(policy.validator.commit, immutableSha);
+  assert.notEqual(
+    policy.validator.commit,
+    stack.tools.wireAndRuntimeConformance.commit,
+    'legacy compatibility validation must not be silently repinned with the repository-owned contract registry',
+  );
 });
 
 for (const [name, mutate] of [

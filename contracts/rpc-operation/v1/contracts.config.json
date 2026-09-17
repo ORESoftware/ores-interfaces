@@ -1,0 +1,8 @@
+{
+  "name": "rpc-operation-v1",
+  "typespec": "main.tsp",
+  "json_schema": "authored.schema.json",
+  "json_schema_draft": "2020-12",
+  "authorities": ["typespec", "json_schema"],
+  "notes": "Normalized operation IR shared by api-docs, ores-stack, ores-cli and generated Rust/Go/Dart/TypeScript/Gleam RPC clients."
+}

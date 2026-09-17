@@ -4,21 +4,6 @@
   "title": "ORES HTTP Request Envelope v1",
   "$comment": "Independent human-authored peer authority for contracts/http-request-envelope/v1/main.tsp.",
   "$defs": {
-    "HeaderMap": {
-      "type": "object",
-      "additionalProperties": { "type": "string" }
-    },
-    "JsonObjectMap": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "QueryMap": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "array",
-        "items": { "type": "string" }
-      }
-    },
     "DecodedRepresentation": {
       "type": "string",
       "enum": [
@@ -28,6 +13,25 @@
         "application/msgpack",
         "application/protobuf"
       ]
+    },
+    "HeaderMap": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": { "type": "string" },
+      "unevaluatedProperties": false
+    },
+    "JsonObjectMap": {
+      "type": "object",
+      "x-ores-json": true
+    },
+    "QueryMap": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "unevaluatedProperties": false
     },
     "RequestAttributes": {
       "type": "object",
@@ -54,7 +58,7 @@
         "raw_body_bytes": {
           "type": "integer",
           "minimum": 0,
-          "maximum": 18446744073709551615
+          "maximum": 4294967295
         },
         "attributes": { "$ref": "#/$defs/RequestAttributes" }
       }

@@ -41,12 +41,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: ORESoftware/typespec-json-schema-validator
-          ref: 1614779275115258db73b92c938313e8ae437936
+          ref: a9db1298cd4c993744a7b24bbc8f0ae9d1d0a33a
           path: .ores-tools/tjsv
           persist-credentials: false
       - name: Install immutable TJSV toolchain
         run: npm ci --prefix .ores-tools/tjsv
-      - name: Discover ores-cli peer manifests
+      - name: Discover and validate peer manifests
         env:
           MINIMUM_PAIRS: ${{ inputs.minimum_pairs }}
           LANGUAGE_MANIFEST: ${{ inputs.language_manifest }}
@@ -85,24 +85,37 @@ jobs:
             if (typeof doc.typespec !== 'string' || !doc.typespec.trim()) throw new Error(`${config}: missing typespec`);
             if (typeof doc.jsonSchema !== 'string' || !doc.jsonSchema.trim()) throw new Error(`${config}: missing jsonSchema`);
             const home = dirname(config);
-            const resolvePeer = (value, label) => {
+            const resolvePeer = (value, label, extension) => {
+              if (typeof value !== 'string' || !value.trim()) throw new Error(`${config}: invalid ${label} path`);
               const normalized = normalize(value);
               if (normalized.startsWith('..' + sep) || normalized === '..' || resolve(home, normalized) === root) throw new Error(`${config}: unsafe ${label} path`);
-              if (normalized.split(/[\\/]+/).some(part => excluded.has(part))) throw new Error(`${config}: ${label} authority is under generated/evidence/build output`);
+              if (normalized.split(/[\\/]+/).some(part => excluded.has(part))) throw new Error(`${config}: ${label} is under generated/evidence/build output`);
               const full = resolve(home, normalized);
               if (!full.startsWith(root + sep)) throw new Error(`${config}: ${label} escapes repository`);
               if (!statSync(full).isFile()) throw new Error(`${config}: ${label} is not a regular file`);
-              return relative(root, full);
+              const rel = relative(root, full);
+              if (extension && !rel.endsWith(extension)) throw new Error(`${config}: ${label} must be ${extension}`);
+              return rel;
             };
-            const tsp = resolvePeer(doc.typespec, 'TypeSpec');
-            const schema = resolvePeer(doc.jsonSchema, 'JSON Schema');
-            if (!tsp.endsWith('.tsp')) throw new Error(`${config}: TypeSpec authority must be .tsp`);
-            if (!schema.endsWith('.json')) throw new Error(`${config}: JSON Schema authority must be .json`);
+            const tsp = resolvePeer(doc.typespec, 'TypeSpec authority', '.tsp');
+            const schema = resolvePeer(doc.jsonSchema, 'JSON Schema authority', '.json');
             if (tsp === schema) throw new Error(`${config}: peer authorities must be distinct files`);
             const schemaDoc = JSON.parse(readFileSync(join(root, schema), 'utf8'));
             if (schemaDoc.$schema !== 'https://json-schema.org/draft/2020-12/schema') throw new Error(`${schema}: must declare Draft 2020-12`);
+
+            const mapping = doc.mapping === undefined ? '-' : resolvePeer(doc.mapping, 'TJSV mapping', '.json');
+            const tjsv = doc.tjsv ?? {};
+            if (tjsv === null || Array.isArray(tjsv) || typeof tjsv !== 'object') throw new Error(`${config}: tjsv must be an object`);
+            const unknownTjsv = Object.keys(tjsv).filter(key => !['int64Strategy', 'sealObjectSchemas'].includes(key));
+            if (unknownTjsv.length) throw new Error(`${config}: unknown tjsv option(s): ${unknownTjsv.sort().join(', ')}`);
+            const int64Strategy = tjsv.int64Strategy ?? 'string';
+            if (!['string', 'number'].includes(int64Strategy)) throw new Error(`${config}: tjsv.int64Strategy must be string or number`);
+            const sealObjectSchemas = tjsv.sealObjectSchemas ?? true;
+            if (typeof sealObjectSchemas !== 'boolean') throw new Error(`${config}: tjsv.sealObjectSchemas must be boolean`);
+
             const instances = join(home, 'instances');
-            rows.push([relative(root, config), tsp, schema, statSafeDirectory(instances) ? relative(root, instances) : ''].join('\t'));
+            const instancesRel = statSafeDirectory(instances) ? relative(root, instances) : '-';
+            rows.push([relative(root, config), tsp, schema, instancesRel, mapping, int64Strategy, String(sealObjectSchemas)].join('\t'));
           }
 
           function statSafeDirectory(path) {
@@ -130,13 +143,22 @@ jobs:
         run: |
           set -euo pipefail
           i=0
-          while IFS=$'\t' read -r config typespec schema instances; do
+          while IFS=$'\t' read -r config typespec schema instances mapping int64_strategy seal_object_schemas; do
             [ -n "$config" ] || continue
             i=$((i + 1))
-            args=(check "--typespec=$typespec" "--schema=$schema" "--report=tmp/tjsv-reports/$i.json")
-            if [ -n "$instances" ]; then args+=("--instances=$instances"); fi
+            args=(check "--typespec=$typespec" "--schema=$schema" "--report=tmp/tjsv-reports/$i.json" "--int64-strategy=$int64_strategy" "--seal-object-schemas=$seal_object_schemas")
+            if [ "$instances" != '-' ]; then args+=("--instances=$instances"); fi
+            if [ "$mapping" != '-' ]; then args+=("--mapping=$mapping"); fi
             node .ores-tools/tjsv/bin/typespec-json-schema-validator.mjs "${args[@]}"
           done < tmp/tjsv-pairs.tsv
+      - name: Retain TJSV parity evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: peer-authority-tjsv-${{ github.event.pull_request.head.sha || github.sha }}
+          path: tmp/tjsv-reports/
+          if-no-files-found: warn
+          retention-days: 7
       - name: Prove authored sources were not mutated
         run: |
           git diff --exit-code HEAD

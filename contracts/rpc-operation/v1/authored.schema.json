@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/oresoftware/ores-interfaces/raw/main/contracts/rpc-operation/v1/authored.schema.json",
   "title": "ORES normalized RPC operation v1",
-  "description": "Language-neutral operation IR emitted from one Rust route.rs HTTP handler plus peer TypeSpec/JSON-Schema contracts. Client generators for Rust, Go, Dart, TypeScript and Gleam consume this shape; the API server uses the same operation identity to build /v1/rpc dispatch.",
+  "description": "Language-neutral operation IR emitted from one authoritative Rust handlers.rs operation plus peer TypeSpec/JSON-Schema contracts. route.rs and REST metadata are optional HTTP projections. Client generators for Rust, Go, Dart, TypeScript and Gleam consume this shape; the API server uses the same operation identity to build POST /v1/rpc dispatch.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -10,7 +10,7 @@
     "operation_key",
     "namespace",
     "source",
-    "http",
+    "rpc_transport_path",
     "scope",
     "audiences",
     "codecs",
@@ -38,28 +38,34 @@
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["route_file", "handler"],
+      "required": ["handlers_file", "operation"],
       "properties": {
+        "handlers_file": { "type": "string", "pattern": "(^|/)handlers\\.rs$" },
+        "operation": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
         "route_file": { "type": "string", "pattern": "(^|/)route\\.rs$" },
-        "handler": {
+        "route_handler": {
           "type": "string",
           "enum": ["get", "post", "put", "patch", "delete", "head", "options"]
         },
         "repository": { "type": "string", "minLength": 1 },
         "commit_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      },
+      "dependentRequired": {
+        "route_file": ["route_handler"],
+        "route_handler": ["route_file"]
       }
     },
+    "rpc_transport_path": { "const": "/v1/rpc" },
     "http": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["method", "path", "rpc_transport_path"],
+      "required": ["method", "path"],
       "properties": {
         "method": {
           "type": "string",
           "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
         },
-        "path": { "type": "string", "pattern": "^/" },
-        "rpc_transport_path": { "const": "/v1/rpc" }
+        "path": { "type": "string", "pattern": "^/" }
       }
     },
     "scope": { "type": "string", "enum": ["regular", "admin"] },

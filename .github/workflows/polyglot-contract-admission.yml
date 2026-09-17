@@ -151,6 +151,14 @@ jobs:
             if [ "$mapping" != '-' ]; then args+=("--mapping=$mapping"); fi
             node .ores-tools/tjsv/bin/typespec-json-schema-validator.mjs "${args[@]}"
           done < tmp/tjsv-pairs.tsv
+      - name: Retain TJSV parity evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: peer-authority-tjsv-${{ github.event.pull_request.head.sha || github.sha }}
+          path: tmp/tjsv-reports/
+          if-no-files-found: warn
+          retention-days: 7
       - name: Prove authored sources were not mutated
         run: |
           git diff --exit-code HEAD

@@ -7,17 +7,17 @@
 namespace Ores.Interfaces.HttpRequestEnvelope.V1;
 
 /** Canonical lowercase HTTP header names mapped to unfolded string values. */
-alias HeaderMap = Record<string>;
+model HeaderMap is Record<string>;
 
 /**
  * JSON-object payload map. `unknown` is intentionally the JSON value slot:
  * generated/runtime language bindings narrow it to their native JSON value
  * union while preserving string keys.
  */
-alias JsonObjectMap = Record<unknown>;
+model JsonObjectMap is Record<unknown>;
 
 /** Query values preserve repeated keys without framework-specific classes. */
-alias QueryMap = Record<string[]>;
+model QueryMap is Record<string[]>;
 
 /** Supported decoded application representations. */
 enum DecodedRepresentation {

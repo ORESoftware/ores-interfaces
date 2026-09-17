@@ -1,0 +1,7 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "event_id": "2",
+  "kind": "claimed",
+  "job_id": "17",
+  "generation": "03"
+}

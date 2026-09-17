@@ -1,0 +1,8 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "event_id": "6",
+  "kind": "terminal",
+  "job_id": "17",
+  "generation": "3",
+  "state": "cancelled"
+}

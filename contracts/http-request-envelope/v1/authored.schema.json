@@ -4,27 +4,6 @@
   "title": "ORES HTTP Request Envelope v1",
   "$comment": "Independent human-authored peer authority for contracts/http-request-envelope/v1/main.tsp.",
   "$defs": {
-    "HeaderMap": {
-      "type": "object",
-      "properties": {},
-      "additionalProperties": { "type": "string" },
-      "unevaluatedProperties": false
-    },
-    "JsonObjectMap": {
-      "type": "object",
-      "properties": {},
-      "additionalProperties": true,
-      "unevaluatedProperties": false
-    },
-    "QueryMap": {
-      "type": "object",
-      "properties": {},
-      "additionalProperties": {
-        "type": "array",
-        "items": { "type": "string" }
-      },
-      "unevaluatedProperties": false
-    },
     "DecodedRepresentation": {
       "type": "string",
       "enum": [
@@ -55,9 +34,24 @@
       "unevaluatedProperties": false,
       "required": ["headers", "query", "raw_body_bytes", "attributes"],
       "properties": {
-        "headers": { "$ref": "#/$defs/HeaderMap" },
-        "query": { "$ref": "#/$defs/QueryMap" },
-        "json_payload": { "$ref": "#/$defs/JsonObjectMap" },
+        "headers": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": { "type": "string" },
+          "unevaluatedProperties": false
+        },
+        "query": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "unevaluatedProperties": false
+        },
+        "json_payload": {
+          "type": "object"
+        },
         "representation": { "$ref": "#/$defs/DecodedRepresentation" },
         "raw_body_bytes": {
           "type": "integer",

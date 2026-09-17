@@ -2,20 +2,8 @@
   "schema": "ores.typespec-json-schema-validator.mapping/v1",
   "declarations": [],
   "ignore": {
-    "typespec": [
-      "Ores.Interfaces.HttpRequestEnvelope.V1.HeaderMap",
-      "Ores.Interfaces.HttpRequestEnvelope.V1.JsonObjectMap",
-      "Ores.Interfaces.HttpRequestEnvelope.V1.QueryMap"
-    ],
-    "generated": [
-      "RecordArrayString",
-      "RecordString",
-      "RecordUnknown"
-    ],
-    "authored": [
-      "HeaderMap",
-      "JsonObjectMap",
-      "QueryMap"
-    ]
+    "typespec": [],
+    "generated": [],
+    "authored": []
   }
 }

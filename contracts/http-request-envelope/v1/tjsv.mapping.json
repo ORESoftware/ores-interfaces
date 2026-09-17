@@ -12,6 +12,10 @@
       "RecordString",
       "RecordUnknown"
     ],
-    "authored": []
+    "authored": [
+      "HeaderMap",
+      "JsonObjectMap",
+      "QueryMap"
+    ]
   }
 }

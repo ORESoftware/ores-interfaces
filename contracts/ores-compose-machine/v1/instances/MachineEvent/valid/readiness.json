@@ -1,0 +1,14 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "event_id": "4",
+  "kind": "readiness",
+  "job_id": "17",
+  "generation": "3",
+  "ready": true,
+  "active": {
+    "project": "alpha",
+    "session": "dev",
+    "revision": "0123456789abcdef0123456789abcdef01234567",
+    "generation": "3"
+  }
+}

@@ -180,3 +180,156 @@ model SwitchFailureDiagnostic {
   @maxLength(64)
   message: string;
 }
+
+@TypeSpec.JsonSchema.extension("additionalProperties", false)
+model MachineEnqueuedEvent {
+  schema_version: "ores.compose.machine.v1";
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  event_id: string;
+
+  kind: "enqueued";
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  job_id: string;
+
+  deduplicated: boolean;
+}
+
+@TypeSpec.JsonSchema.extension("additionalProperties", false)
+model MachineClaimedEvent {
+  schema_version: "ores.compose.machine.v1";
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  event_id: string;
+
+  kind: "claimed";
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  job_id: string;
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  generation: string;
+}
+
+@TypeSpec.JsonSchema.extension("additionalProperties", false)
+model MachineSwitchPhaseEvent {
+  schema_version: "ores.compose.machine.v1";
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  event_id: string;
+
+  kind: "switch_phase";
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  job_id: string;
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  generation: string;
+
+  phase: SwitchPhase;
+}
+
+@TypeSpec.JsonSchema.extension("additionalProperties", false)
+model MachineReadinessEvent {
+  schema_version: "ores.compose.machine.v1";
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  event_id: string;
+
+  kind: "readiness";
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  job_id: string;
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  generation: string;
+
+  ready: boolean;
+  active?: ActiveSystem;
+}
+
+@TypeSpec.JsonSchema.extension("additionalProperties", false)
+model MachineFailureEvent {
+  schema_version: "ores.compose.machine.v1";
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  event_id: string;
+
+  kind: "failure";
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  job_id: string;
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  generation: string;
+
+  phase: SwitchPhase;
+  code: SwitchFailureCode;
+
+  @minLength(1)
+  @maxLength(64)
+  message: string;
+}
+
+@TypeSpec.JsonSchema.extension("additionalProperties", false)
+model MachineTerminalEvent {
+  schema_version: "ores.compose.machine.v1";
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  event_id: string;
+
+  kind: "terminal";
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  job_id: string;
+
+  @minLength(1)
+  @maxLength(20)
+  @pattern("^[1-9][0-9]{0,19}$")
+  generation: string;
+
+  state: "ready" | "failed";
+  active?: ActiveSystem;
+}
+
+union MachineEvent {
+  enqueued: MachineEnqueuedEvent,
+  claimed: MachineClaimedEvent,
+  switchPhase: MachineSwitchPhaseEvent,
+  readiness: MachineReadinessEvent,
+  failure: MachineFailureEvent,
+  terminal: MachineTerminalEvent,
+}

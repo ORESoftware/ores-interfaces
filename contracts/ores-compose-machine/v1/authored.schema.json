@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.oresoftware.com/compose/machine/v1.json",
   "title": "ORES Compose machine control contract v1",
-  "description": "Independent JSON Schema authority for serialized ores-compose machine ensure, queue status, readiness, error, and switch-failure diagnostic messages.",
+  "description": "Independent JSON Schema authority for serialized ores-compose machine ensure, queue status, readiness, errors, switch-failure diagnostics, and replayable machine events.",
   "$defs": {
     "EnsureRequest": {
       "type": "object",
@@ -61,12 +61,7 @@
       "properties": {
         "schema_version": {"type": "string", "const": "ores.compose.machine.v1"},
         "job_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
-        "state": {"anyOf": [
-          {"type": "string", "const": "queued"},
-          {"type": "string", "const": "running"},
-          {"type": "string", "const": "ready"},
-          {"type": "string", "const": "failed"}
-        ]},
+        "state": {"anyOf": [{"type": "string", "const": "queued"}, {"type": "string", "const": "running"}, {"type": "string", "const": "ready"}, {"type": "string", "const": "failed"}]},
         "active": {"$ref": "#/$defs/ActiveSystem"}
       }
     },
@@ -110,33 +105,11 @@
     },
     "SwitchPhase": {
       "type": "string",
-      "enum": [
-        "confirm_ready",
-        "drain_active",
-        "stop_active",
-        "fetch_revision",
-        "checkout_revision",
-        "rebuild",
-        "configure_network",
-        "start_system",
-        "await_readiness",
-        "publish_ingress"
-      ]
+      "enum": ["confirm_ready", "drain_active", "stop_active", "fetch_revision", "checkout_revision", "rebuild", "configure_network", "start_system", "await_readiness", "publish_ingress"]
     },
     "SwitchFailureCode": {
       "type": "string",
-      "enum": [
-        "confirm_ready_failed",
-        "drain_active_failed",
-        "stop_active_failed",
-        "fetch_revision_failed",
-        "checkout_revision_failed",
-        "rebuild_failed",
-        "configure_network_failed",
-        "start_system_failed",
-        "await_readiness_failed",
-        "publish_ingress_failed"
-      ]
+      "enum": ["confirm_ready_failed", "drain_active_failed", "stop_active_failed", "fetch_revision_failed", "checkout_revision_failed", "rebuild_failed", "configure_network_failed", "start_system_failed", "await_readiness_failed", "publish_ingress_failed"]
     },
     "SwitchFailureDiagnostic": {
       "type": "object",
@@ -151,6 +124,102 @@
         "code": {"$ref": "#/$defs/SwitchFailureCode"},
         "message": {"type": "string", "minLength": 1, "maxLength": 64}
       }
+    },
+    "MachineEnqueuedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": ["schema_version", "event_id", "kind", "job_id", "deduplicated"],
+      "properties": {
+        "schema_version": {"type": "string", "const": "ores.compose.machine.v1"},
+        "event_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "kind": {"type": "string", "const": "enqueued"},
+        "job_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "deduplicated": {"type": "boolean"}
+      }
+    },
+    "MachineClaimedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": ["schema_version", "event_id", "kind", "job_id", "generation"],
+      "properties": {
+        "schema_version": {"type": "string", "const": "ores.compose.machine.v1"},
+        "event_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "kind": {"type": "string", "const": "claimed"},
+        "job_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "generation": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"}
+      }
+    },
+    "MachineSwitchPhaseEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": ["schema_version", "event_id", "kind", "job_id", "generation", "phase"],
+      "properties": {
+        "schema_version": {"type": "string", "const": "ores.compose.machine.v1"},
+        "event_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "kind": {"type": "string", "const": "switch_phase"},
+        "job_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "generation": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "phase": {"$ref": "#/$defs/SwitchPhase"}
+      }
+    },
+    "MachineReadinessEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": ["schema_version", "event_id", "kind", "job_id", "generation", "ready"],
+      "properties": {
+        "schema_version": {"type": "string", "const": "ores.compose.machine.v1"},
+        "event_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "kind": {"type": "string", "const": "readiness"},
+        "job_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "generation": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "ready": {"type": "boolean"},
+        "active": {"$ref": "#/$defs/ActiveSystem"}
+      }
+    },
+    "MachineFailureEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": ["schema_version", "event_id", "kind", "job_id", "generation", "phase", "code", "message"],
+      "properties": {
+        "schema_version": {"type": "string", "const": "ores.compose.machine.v1"},
+        "event_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "kind": {"type": "string", "const": "failure"},
+        "job_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "generation": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "phase": {"$ref": "#/$defs/SwitchPhase"},
+        "code": {"$ref": "#/$defs/SwitchFailureCode"},
+        "message": {"type": "string", "minLength": 1, "maxLength": 64}
+      }
+    },
+    "MachineTerminalEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": ["schema_version", "event_id", "kind", "job_id", "generation", "state"],
+      "properties": {
+        "schema_version": {"type": "string", "const": "ores.compose.machine.v1"},
+        "event_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "kind": {"type": "string", "const": "terminal"},
+        "job_id": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "generation": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[1-9][0-9]{0,19}$"},
+        "state": {"anyOf": [{"type": "string", "const": "ready"}, {"type": "string", "const": "failed"}]},
+        "active": {"$ref": "#/$defs/ActiveSystem"}
+      }
+    },
+    "MachineEvent": {
+      "anyOf": [
+        {"$ref": "#/$defs/MachineEnqueuedEvent"},
+        {"$ref": "#/$defs/MachineClaimedEvent"},
+        {"$ref": "#/$defs/MachineSwitchPhaseEvent"},
+        {"$ref": "#/$defs/MachineReadinessEvent"},
+        {"$ref": "#/$defs/MachineFailureEvent"},
+        {"$ref": "#/$defs/MachineTerminalEvent"}
+      ]
     }
   }
 }

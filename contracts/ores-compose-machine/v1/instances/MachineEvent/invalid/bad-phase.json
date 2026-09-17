@@ -1,0 +1,8 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "event_id": "3",
+  "kind": "switch_phase",
+  "job_id": "17",
+  "generation": "3",
+  "phase": "deploy"
+}

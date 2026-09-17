@@ -14,10 +14,28 @@
         "application/protobuf"
       ]
     },
+    "HeaderMap": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": { "type": "string" },
+      "unevaluatedProperties": false
+    },
+    "JsonObjectMap": {
+      "type": "object",
+      "x-ores-json": true
+    },
+    "QueryMap": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "unevaluatedProperties": false
+    },
     "RequestAttributes": {
       "type": "object",
       "additionalProperties": false,
-      "unevaluatedProperties": false,
       "required": ["request_id", "trace_id"],
       "properties": {
         "request_id": { "type": "string" },
@@ -31,27 +49,11 @@
     "HttpRequestEnvelope": {
       "type": "object",
       "additionalProperties": false,
-      "unevaluatedProperties": false,
       "required": ["headers", "query", "raw_body_bytes", "attributes"],
       "properties": {
-        "headers": {
-          "type": "object",
-          "properties": {},
-          "additionalProperties": { "type": "string" },
-          "unevaluatedProperties": false
-        },
-        "query": {
-          "type": "object",
-          "properties": {},
-          "additionalProperties": {
-            "type": "array",
-            "items": { "type": "string" }
-          },
-          "unevaluatedProperties": false
-        },
-        "json_payload": {
-          "type": "object"
-        },
+        "headers": { "$ref": "#/$defs/HeaderMap" },
+        "query": { "$ref": "#/$defs/QueryMap" },
+        "json_payload": { "$ref": "#/$defs/JsonObjectMap" },
         "representation": { "$ref": "#/$defs/DecodedRepresentation" },
         "raw_body_bytes": {
           "type": "integer",

@@ -1,0 +1,11 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "event_id": "5",
+  "kind": "failure",
+  "job_id": "17",
+  "generation": "3",
+  "phase": "rebuild",
+  "code": "rebuild_failed",
+  "message": "service rebuild failed",
+  "detail": "argv=/bin/sh --token=secret /tmp/private 10.0.0.7:9000"
+}

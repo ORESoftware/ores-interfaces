@@ -1,0 +1,7 @@
+{
+  "schema_version": "ores.compose.machine.v1",
+  "event_id": "1",
+  "kind": "enqueued",
+  "job_id": "17",
+  "deduplicated": false
+}

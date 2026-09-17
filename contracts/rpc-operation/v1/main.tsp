@@ -27,8 +27,10 @@ enum RpcPayloadCodec {
 }
 
 model RpcSource {
-  route_file: string;
-  handler: "get" | "post" | "put" | "patch" | "delete" | "head" | "options";
+  handlers_file: string;
+  operation: string;
+  route_file?: string;
+  route_handler?: "get" | "post" | "put" | "patch" | "delete" | "head" | "options";
   repository?: string;
   commit_sha?: string;
 }
@@ -36,7 +38,6 @@ model RpcSource {
 model RpcHttpProjection {
   method: HttpMethod;
   path: string;
-  rpc_transport_path: "/v1/rpc";
 }
 
 model RpcCodecSet {
@@ -67,7 +68,8 @@ model RpcOperation {
 
   namespace: string[];
   source: RpcSource;
-  http: RpcHttpProjection;
+  rpc_transport_path: "/v1/rpc";
+  http?: RpcHttpProjection;
   scope: RpcScope;
   audiences: RpcAudience[];
   codecs: RpcCodecSet;

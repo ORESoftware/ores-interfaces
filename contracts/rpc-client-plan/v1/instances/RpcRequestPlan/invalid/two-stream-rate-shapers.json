@@ -1,0 +1,9 @@
+{
+  "plan_version": "1.0.0",
+  "kind": "stream",
+  "key": "demo.events.watch_events",
+  "rpc_path": "/v1/rpc",
+  "serial_strategy": "json",
+  "sample_each_millis": 100,
+  "debounce_each_millis": 100
+}

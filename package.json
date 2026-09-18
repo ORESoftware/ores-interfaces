@@ -8,7 +8,9 @@
   "repository": "github:ORESoftware/ores-interfaces",
   "tspMain": "generated/public/main.tsp",
   "exports": {
-    ".": { "typespec": "./generated/public/main.tsp" },
+    ".": {
+      "typespec": "./generated/public/main.tsp"
+    },
     "./schema": "./generated/public/schema.json",
     "./typespec": "./generated/public/main.tsp",
     "./provenance": "./generated/public/provenance.json",
@@ -27,12 +29,24 @@
   ],
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node --test test/policy.test.mjs test/output.test.mjs test/checkout.test.mjs",
+    "test": "node --test test/policy.test.mjs test/output.test.mjs test/checkout.test.mjs test/rpc-client-plan.test.mjs",
     "test:integration": "node --test test/integration.test.mjs && node --test test/checkout-integration.test.mjs",
     "check": "npm test && npm run test:integration",
     "prepack": "npm run build"
   },
-  "peerDependencies": { "@typespec/compiler": "1.16.0", "@typespec/json-schema": "1.16.0" },
-  "peerDependenciesMeta": { "@typespec/compiler": { "optional": true }, "@typespec/json-schema": { "optional": true } },
-  "engines": { "node": ">=22.9" }
+  "peerDependencies": {
+    "@typespec/compiler": "1.16.0",
+    "@typespec/json-schema": "1.16.0"
+  },
+  "peerDependenciesMeta": {
+    "@typespec/compiler": {
+      "optional": true
+    },
+    "@typespec/json-schema": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=22.9"
+  }
 }

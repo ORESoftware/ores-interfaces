@@ -1,0 +1,16 @@
+{
+  "$comment": "Independent human-authored peer authorities for the RPC client request plan. ORESoftware/api-docs owns the generator and the option catalog that produces plans; this registry entry owns the fleet-shared TypeSpec peer so plan shape is not defined solely inside one consumer. Generated schemas and generated clients remain evidence, never a third authority.",
+  "name": "rpc-client-plan-v1",
+  "typespec": "main.tsp",
+  "jsonSchema": "authored.schema.json",
+  "json_schema_draft": "2020-12",
+  "authorities": [
+    "typespec",
+    "json_schema"
+  ],
+  "notes": "The kind discriminator carries the unary/streaming split: a unary plan must not carry stream shaping and a streaming plan must not carry unary-only shaping. Mutually exclusive rate-shaping fields are enforced in the JSON Schema peer; TypeSpec expresses the field set and bounds.",
+  "tjsv": {
+    "int64Strategy": "number",
+    "sealObjectSchemas": true
+  }
+}

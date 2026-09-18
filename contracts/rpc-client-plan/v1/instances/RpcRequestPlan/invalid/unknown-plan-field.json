@@ -1,0 +1,8 @@
+{
+  "key": "demo.users.find_user",
+  "kind": "unary",
+  "not_a_documented_option": true,
+  "plan_version": "1.0.0",
+  "rpc_path": "/v1/rpc",
+  "serial_strategy": "json"
+}

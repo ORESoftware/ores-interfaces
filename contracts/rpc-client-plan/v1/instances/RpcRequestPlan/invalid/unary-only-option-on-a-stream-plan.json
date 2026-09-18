@@ -1,0 +1,8 @@
+{
+  "dry_run": true,
+  "key": "demo.events.watch_events",
+  "kind": "stream",
+  "plan_version": "1.0.0",
+  "rpc_path": "/v1/rpc",
+  "serial_strategy": "json"
+}

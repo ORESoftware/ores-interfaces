@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "operation_key": "billing.invoice.create",
+  "transport": "rpc",
+  "outcome": "error",
+  "error_kind": "internal",
+  "error_code": "rpc.dispatch_failed",
+  "trace_id": "ores-trace-uXOkCvZNc9WidUlNR7Pvn",
+  "routine_id": "ores-routine-JJkmmS1t9iAh6taE0Hj1II",
+  "re_raised": true,
+  "payload_omitted": true
+}

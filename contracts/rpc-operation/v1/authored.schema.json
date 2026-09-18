@@ -127,31 +127,26 @@
     }
 ,
     "OresTraceId": {
-      "$id": "OresTraceId",
       "description": "Static call-site trace identifier emitted as an inline literal by the generator: the fixed prefix ores-trace- followed by a 21-character nanoid alphabet run. Independently authored peer of the ores-otel/ores.otel.log contracts/ores-ids declaration of the same name.",
       "type": "string",
       "pattern": "^ores-trace-[A-Za-z0-9_-]{21}$"
     },
     "OresRoutineId": {
-      "$id": "OresRoutineId",
       "description": "Static routine identifier declared once per generated dispatch function: the fixed prefix ores-routine- followed by a 21-character nanoid alphabet run. Independently authored peer of the ores-otel/ores.otel.log contracts/ores-ids declaration of the same name.",
       "type": "string",
       "pattern": "^ores-routine-[A-Za-z0-9_-]{21}$"
     },
     "RpcErrorTransport": {
-      "$id": "RpcErrorTransport",
       "description": "Carrier the failed invocation arrived on. Identity only; no address, authority, path or header value is ever recorded.",
       "type": "string",
       "enum": ["rpc", "http", "in_process"]
     },
     "RpcDispatchOutcome": {
-      "$id": "RpcDispatchOutcome",
       "description": "What the guarded dispatch did. A guarded dispatch that succeeds emits no RpcErrorLogEvent at all.",
       "type": "string",
       "enum": ["error", "panic", "timeout", "cancelled"]
     },
     "RpcErrorKind": {
-      "$id": "RpcErrorKind",
       "description": "Coarse, language-neutral classification of the trapped failure. Closed set so that a new kind is a contract change rather than a free-text channel.",
       "type": "string",
       "enum": [
@@ -170,7 +165,6 @@
       ]
     },
     "RpcErrorLogEvent": {
-      "$id": "RpcErrorLogEvent",
       "description": "The one telemetry event a guarded RPC dispatch emits before re-raising the error. The property set is closed and payload-free by construction: there is no request or response body, no path or query value, no header, no meta object and no user data anywhere in the shape, and additionalProperties false turns any attempt to add one into an admission failure rather than a leak.",
       "type": "object",
       "additionalProperties": false,

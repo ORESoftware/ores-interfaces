@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "operation_key": "search.index.rebuild",
+  "transport": "rpc",
+  "outcome": "panic",
+  "error_kind": "panic",
+  "error_code": "rpc.handler_panicked",
+  "trace_id": "ores-trace-C5SHdQcPeGTaKK2B7bDMe",
+  "routine_id": "ores-routine-JJkmmS1t9iAh6taE0Hj1I",
+  "re_raised": true,
+  "payload_omitted": true
+}

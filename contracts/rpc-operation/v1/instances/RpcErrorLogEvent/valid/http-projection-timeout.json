@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "operation_key": "reports.export.status",
+  "transport": "http",
+  "outcome": "timeout",
+  "error_kind": "timeout",
+  "error_code": "upstream_deadline_exceeded",
+  "trace_id": "ores-trace-dmleVhH7q03mt0j27Ecio",
+  "routine_id": "ores-routine-mOVXxsGiBFuRSkcVZpszO",
+  "re_raised": true,
+  "payload_omitted": true
+}

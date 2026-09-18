@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "operation_key": "billing.invoice.create",
+  "transport": "rpc",
+  "outcome": "error",
+  "error_kind": "authorization",
+  "error_code": "auth.token_rejected",
+  "trace_id": "ores-trace-uXOkCvZNc9WidUlNR7Pvn",
+  "re_raised": true,
+  "payload_omitted": true,
+  "headers": { "authorization": "Bearer redacted" },
+  "meta": { "path": "/v1/customers/cus_9f2/invoices", "query": "expand=lines" }
+}

@@ -5,7 +5,7 @@
   "outcome": "error",
   "error_kind": "internal",
   "error_code": "PoolTimedOut: connection to 10.0.4.19:5432 failed",
-  "trace_id": "ores-trace-uXOkCvZNc9WidUlNR7Pvn",
   "re_raised": true,
-  "payload_omitted": true
+  "payload_omitted": true,
+  "ores_trace_id": "ores-trace-uXOkCvZNc9WidUlNR7Pvn"
 }

@@ -19,7 +19,9 @@
     "contract_sha256"
   ],
   "properties": {
-    "schema_version": { "const": 1 },
+    "schema_version": {
+      "const": 1
+    },
     "operation_key": {
       "type": "string",
       "minLength": 3,
@@ -38,94 +40,201 @@
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["handlers_file", "operation"],
+      "required": [
+        "handlers_file",
+        "operation"
+      ],
       "properties": {
-        "handlers_file": { "type": "string", "pattern": "(^|/)handlers\\.rs$" },
-        "operation": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
-        "route_file": { "type": "string", "pattern": "(^|/)route\\.rs$" },
+        "handlers_file": {
+          "type": "string",
+          "pattern": "(^|/)handlers\\.rs$"
+        },
+        "operation": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "route_file": {
+          "type": "string",
+          "pattern": "(^|/)route\\.rs$"
+        },
         "route_handler": {
           "type": "string",
-          "enum": ["get", "post", "put", "patch", "delete", "head", "options"]
+          "enum": [
+            "get",
+            "post",
+            "put",
+            "patch",
+            "delete",
+            "head",
+            "options"
+          ]
         },
-        "repository": { "type": "string", "minLength": 1 },
-        "commit_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commit_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
       },
       "dependentRequired": {
-        "route_file": ["route_handler"],
-        "route_handler": ["route_file"]
+        "route_file": [
+          "route_handler"
+        ],
+        "route_handler": [
+          "route_file"
+        ]
       }
     },
-    "rpc_transport_path": { "const": "/v1/rpc" },
+    "rpc_transport_path": {
+      "const": "/v1/rpc"
+    },
     "stream": {
       "type": "string",
-      "enum": ["unary", "server_stream", "client_stream", "bidi"],
+      "enum": [
+        "unary",
+        "server_stream",
+        "client_stream",
+        "bidi"
+      ],
       "description": "RPC streaming mode. When absent, consumers must preserve legacy unary semantics."
     },
     "http": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["method", "path"],
+      "required": [
+        "method",
+        "path"
+      ],
       "properties": {
         "method": {
           "type": "string",
-          "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "HEAD",
+            "OPTIONS"
+          ]
         },
-        "path": { "type": "string", "pattern": "^/" }
+        "path": {
+          "type": "string",
+          "pattern": "^/"
+        }
       }
     },
-    "scope": { "type": "string", "enum": ["regular", "admin"] },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "regular",
+        "admin"
+      ]
+    },
     "audiences": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
-      "items": { "type": "string", "enum": ["browser", "server"] }
+      "items": {
+        "type": "string",
+        "enum": [
+          "browser",
+          "server"
+        ]
+      }
     },
     "codecs": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["allowed", "default"],
+      "required": [
+        "allowed",
+        "default"
+      ],
       "properties": {
         "allowed": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": { "type": "string", "enum": ["json", "protobuf", "messagepack"] }
+          "items": {
+            "type": "string",
+            "enum": [
+              "json",
+              "protobuf",
+              "messagepack"
+            ]
+          }
         },
-        "default": { "type": "string", "enum": ["json", "protobuf", "messagepack"] }
+        "default": {
+          "type": "string",
+          "enum": [
+            "json",
+            "protobuf",
+            "messagepack"
+          ]
+        }
       }
     },
-    "request": { "$ref": "#/$defs/requestShape" },
-    "response": { "$ref": "#/$defs/responseShape" },
-    "contract_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+    "request": {
+      "$ref": "#/$defs/requestShape"
+    },
+    "response": {
+      "$ref": "#/$defs/responseShape"
+    },
+    "contract_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
   },
   "$defs": {
     "schemaRef": {
       "oneOf": [
-        { "type": "object" },
-        { "type": "string", "minLength": 1 }
+        {
+          "type": "object"
+        },
+        {
+          "type": "string",
+          "minLength": 1
+        }
       ]
     },
     "requestShape": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "path_schema": { "$ref": "#/$defs/schemaRef" },
-        "query_schema": { "$ref": "#/$defs/schemaRef" },
-        "header_schema": { "$ref": "#/$defs/schemaRef" },
-        "body_schema": { "$ref": "#/$defs/schemaRef" }
+        "path_schema": {
+          "$ref": "#/$defs/schemaRef"
+        },
+        "query_schema": {
+          "$ref": "#/$defs/schemaRef"
+        },
+        "header_schema": {
+          "$ref": "#/$defs/schemaRef"
+        },
+        "body_schema": {
+          "$ref": "#/$defs/schemaRef"
+        }
       }
     },
     "responseShape": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "header_schema": { "$ref": "#/$defs/schemaRef" },
-        "trailer_schema": { "$ref": "#/$defs/schemaRef" },
-        "body_schema": { "$ref": "#/$defs/schemaRef" },
-        "error_schema": { "$ref": "#/$defs/schemaRef" }
+        "header_schema": {
+          "$ref": "#/$defs/schemaRef"
+        },
+        "trailer_schema": {
+          "$ref": "#/$defs/schemaRef"
+        },
+        "body_schema": {
+          "$ref": "#/$defs/schemaRef"
+        },
+        "error_schema": {
+          "$ref": "#/$defs/schemaRef"
+        }
       }
-    }
-,
+    },
     "OresTraceId": {
       "description": "Static call-site trace identifier emitted as an inline literal by the generator: the fixed prefix ores-trace- followed by a 21-character nanoid alphabet run. Independently authored peer of the ores-otel/ores.otel.log contracts/ores-ids declaration of the same name.",
       "type": "string",
@@ -139,12 +248,21 @@
     "RpcErrorTransport": {
       "description": "Carrier the failed invocation arrived on. Identity only; no address, authority, path or header value is ever recorded.",
       "type": "string",
-      "enum": ["rpc", "http", "in_process"]
+      "enum": [
+        "rpc",
+        "http",
+        "in_process"
+      ]
     },
     "RpcDispatchOutcome": {
       "description": "What the guarded dispatch did. A guarded dispatch that succeeds emits no RpcErrorLogEvent at all.",
       "type": "string",
-      "enum": ["error", "panic", "timeout", "cancelled"]
+      "enum": [
+        "error",
+        "panic",
+        "timeout",
+        "cancelled"
+      ]
     },
     "RpcErrorKind": {
       "description": "Coarse, language-neutral classification of the trapped failure. Closed set so that a new kind is a contract change rather than a free-text channel.",
@@ -165,31 +283,40 @@
       ]
     },
     "RpcErrorLogEvent": {
-      "description": "The one telemetry event a guarded RPC dispatch emits before re-raising the error. The property set is closed and payload-free by construction: there is no request or response body, no path or query value, no header, no meta object and no user data anywhere in the shape, and additionalProperties false turns any attempt to add one into an admission failure rather than a leak.",
+      "description": "The one telemetry event a guarded RPC dispatch emits before re-raising the error. The property set is closed and payload-free by construction: there is no request or response body, no path or query value, no header, no meta object and no user data anywhere in the shape, and additionalProperties false turns any attempt to add one into an admission failure rather than a leak. Identity fields are split by origin: ores_trace_id and ores_routine_id are STATIC call-site identities the generator emits as inline literals, while trace_id and span_id are DYNAMIC W3C trace-context values that vary per invocation. They were previously both called trace_id, which made a log join silently conflate a source location with an invocation.",
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "schema_version",
-        "operation_key",
-        "transport",
-        "outcome",
-        "error_kind",
         "error_code",
-        "trace_id",
+        "error_kind",
+        "operation_key",
+        "ores_trace_id",
+        "outcome",
+        "payload_omitted",
         "re_raised",
-        "payload_omitted"
+        "rpc_layer",
+        "schema_version",
+        "transport"
       ],
       "properties": {
-        "schema_version": { "const": 1 },
+        "schema_version": {
+          "const": 1
+        },
         "operation_key": {
           "type": "string",
           "minLength": 3,
           "maxLength": 200,
           "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$"
         },
-        "transport": { "$ref": "#/$defs/RpcErrorTransport" },
-        "outcome": { "$ref": "#/$defs/RpcDispatchOutcome" },
-        "error_kind": { "$ref": "#/$defs/RpcErrorKind" },
+        "transport": {
+          "$ref": "#/$defs/RpcErrorTransport"
+        },
+        "outcome": {
+          "$ref": "#/$defs/RpcDispatchOutcome"
+        },
+        "error_kind": {
+          "$ref": "#/$defs/RpcErrorKind"
+        },
         "error_code": {
           "description": "Stable, generator-assigned code. Never an exception message, stack, or any value derived from the request.",
           "type": "string",
@@ -197,8 +324,14 @@
           "maxLength": 128,
           "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
         },
-        "trace_id": { "$ref": "#/$defs/OresTraceId" },
-        "routine_id": { "$ref": "#/$defs/OresRoutineId" },
+        "trace_id": {
+          "description": "W3C trace-context trace-id for the invocation this error occurred in: 32 lowercase hex digits, not all zero. Optional, because an error can be logged outside any propagated trace. Distinct from ores_trace_id, which identifies the call site rather than the invocation.",
+          "type": "string",
+          "pattern": "^[0-9a-f]{32}$",
+          "not": {
+            "const": "00000000000000000000000000000000"
+          }
+        },
         "re_raised": {
           "description": "True records that the trapped error was re-raised (returned unchanged, rethrown, resume_unwind-ed or re-panicked) instead of swallowed.",
           "type": "boolean"
@@ -206,6 +339,29 @@
         "payload_omitted": {
           "description": "Explicit machine-checkable declaration that the event carries no payload data. Always true.",
           "const": true
+        },
+        "ores_trace_id": {
+          "$ref": "#/$defs/OresTraceId"
+        },
+        "ores_routine_id": {
+          "$ref": "#/$defs/OresRoutineId"
+        },
+        "span_id": {
+          "description": "W3C trace-context span-id for the invocation: 16 lowercase hex digits, not all zero. Optional for the same reason as trace_id.",
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$",
+          "not": {
+            "const": "0000000000000000"
+          }
+        },
+        "rpc_layer": {
+          "description": "Which seam emitted this event. One error legitimately produces more than one log line as it crosses seams — a handler failure is re-raised through dispatch and observed again at the transport — so without this a deduplicator cannot tell a genuine duplicate from a double-log bug.",
+          "enum": [
+            "handler",
+            "dispatch",
+            "transport",
+            "client"
+          ]
         }
       }
     }

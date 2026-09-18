@@ -75,3 +75,36 @@ npx --yes \
 CI runs the same command in `.github/workflows/rpc-operation-tjsv.yml`. Any
 structural, declaration, differential-validation or corpus disagreement fails
 closed.
+
+## Identity fields: static versus dynamic
+
+`RpcErrorLogEvent` carries two kinds of identity, and they are not
+interchangeable:
+
+| Field | Kind | Shape | Required |
+| --- | --- | --- | --- |
+| `ores_trace_id` | **static** call-site identity, emitted as an inline literal by the generator | `ores-trace-<21-char nanoid>` | yes |
+| `ores_routine_id` | **static** routine identity for the call site | `ores-routine-<21-char nanoid>` | no |
+| `trace_id` | **dynamic** W3C trace-context trace-id for the invocation | 32 lowercase hex | no |
+| `span_id` | **dynamic** W3C trace-context span-id for the invocation | 16 lowercase hex | no |
+
+The static pair answers *which line of code emitted this*. The dynamic pair
+answers *which invocation was it part of*. An earlier version of this contract
+called the static value simply `trace_id`, which collided with the W3C field of
+the same name in `rpc-client-plan/v1` — so a log join across the two contracts
+would silently conflate a source location with an invocation, and the resulting
+"trace" would group together every occurrence of one call site.
+
+The dynamic fields are optional because an error can be logged outside any
+propagated trace. The static one is required because the generator always knows
+it.
+
+## `rpc_layer`
+
+Required, one of `handler`, `dispatch`, `transport`, `client`.
+
+One error legitimately produces more than one log line as it crosses seams: a
+handler failure is re-raised through dispatch and observed again at the
+transport. Without a layer discriminator a deduplicator cannot tell that from a
+double-log bug, so it either hides real duplication or silently drops
+legitimate events.

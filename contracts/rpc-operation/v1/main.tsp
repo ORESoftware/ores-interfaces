@@ -152,6 +152,14 @@ enum RpcErrorKind {
  * for `meta`, or for any user data, and the model is closed so a generator that
  * tries to add one fails admission instead of leaking.
  */
+/// The seam that emitted an RPC error-log event.
+enum RpcLayer {
+  handler,
+  dispatch,
+  transport,
+  client,
+}
+
 model RpcErrorLogEvent {
   schema_version: 1;
 
@@ -170,8 +178,26 @@ model RpcErrorLogEvent {
   @pattern("^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$")
   error_code: string;
 
-  trace_id: OresTraceId;
-  routine_id?: OresRoutineId;
+  /// Static call-site identity emitted as an inline literal by the generator.
+  /// Distinct from trace_id, which identifies the invocation, not the site.
+  ores_trace_id: OresTraceId;
+
+  /// Static routine identity for the call site, when the generator assigns one.
+  ores_routine_id?: OresRoutineId;
+
+  /// W3C trace-context trace-id for the invocation: 32 lowercase hex digits.
+  /// Optional, because an error can be logged outside any propagated trace.
+  @pattern("^[0-9a-f]{32}$")
+  trace_id?: string;
+
+  /// W3C trace-context span-id for the invocation: 16 lowercase hex digits.
+  @pattern("^[0-9a-f]{16}$")
+  span_id?: string;
+
+  /// Which seam emitted this event. One error legitimately produces more than
+  /// one log line as it crosses seams, so a deduplicator needs this to tell a
+  /// genuine duplicate from a double-log bug.
+  rpc_layer: RpcLayer;
 
   /**
    * Records that the trapped error was re-raised (returned, rethrown,

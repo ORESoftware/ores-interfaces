@@ -77,11 +77,28 @@ jobs:
           if ((report.findings ?? []).length) throw new Error('unexpected TJSV findings');
           if (report.coverage?.differentialInstanceValidation !== true) throw new Error('instance differential validation did not run');
           const summary = report.differential?.summary ?? {};
-          if ((summary.comparedDeclarations ?? 0) < 6) throw new Error(`expected at least 6 compared declarations, got ${summary.comparedDeclarations}`);
-          if ((summary.corpusInstances ?? 0) < 29) throw new Error(`expected the full instance corpus, got ${summary.corpusInstances}`);
+          if ((summary.comparedDeclarations ?? 0) < 22) throw new Error(`expected every declaration compared, got ${summary.comparedDeclarations}`);
+          if ((summary.corpusInstances ?? 0) < 69) throw new Error(`expected the full instance corpus, got ${summary.corpusInstances}`);
           if ((summary.divergences ?? -1) !== 0) throw new Error('authorities diverged on corpus instances');
           if ((summary.refusals ?? -1) !== 0) throw new Error('differential validator refused evidence');
           if ((report.counts?.differentialFindings ?? -1) !== 0) throw new Error('differential findings remain');
+          if ((summary.behaviorallyIndistinguishableDeclarations ?? -1) !== (summary.comparedDeclarations ?? 0))
+            throw new Error('a compared declaration is not behaviorally indistinguishable across the two authorities');
+          if ((report.counts?.typespecOutOfScopeDeclarations ?? -1) !== 0) throw new Error('a TypeSpec declaration was left out of scope');
+          NODE
+      - name: Require the mapping to exclude nothing
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          // The RpcOperation group was once excluded from comparison, which left the
+          // operation IR that ores-stack and api-docs consume without a fail-closed gate.
+          // Re-introducing any exclusion must fail admission rather than quietly shrink scope.
+          const mapping = JSON.parse(readFileSync(`${process.env.CONTRACT_ROOT}/tjsv.mapping.json`, 'utf8'));
+          for (const lane of ['typespec', 'generated', 'authored']) {
+            const entries = mapping.ignore?.[lane] ?? [];
+            if (entries.length) throw new Error(`tjsv.mapping.json ignore.${lane} excludes ${entries.join(', ')} from comparison`);
+          }
           NODE
       - name: Prove the error-log contract stays payload-free and closed
         run: |

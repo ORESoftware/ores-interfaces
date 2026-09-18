@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "operation_key": "sonus.auris.list_devices",
+  "namespace": [
+    "sonus",
+    "auris"
+  ],
+  "source": {
+    "handlers_file": "src/routes/devices/handlers.rs",
+    "operation": "list_devices"
+  },
+  "rpc_transport_path": "/v1/rpc",
+  "scope": "regular",
+  "audiences": [
+    "browser",
+    "server"
+  ],
+  "codecs": {
+    "allowed": [
+      "json"
+    ],
+    "default": "json"
+  },
+  "request": {},
+  "response": {},
+  "contract_sha256": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+}

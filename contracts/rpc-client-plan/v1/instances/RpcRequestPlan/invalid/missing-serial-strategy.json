@@ -1,0 +1,6 @@
+{
+  "key": "demo.users.find_user",
+  "kind": "unary",
+  "plan_version": "1.0.0",
+  "rpc_path": "/v1/rpc"
+}

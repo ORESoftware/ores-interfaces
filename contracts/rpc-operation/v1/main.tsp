@@ -1,3 +1,14 @@
+/**
+ * Normalized RPC operation IR v1.
+ *
+ * This TypeSpec file and authored.schema.json are independent human-authored
+ * peer authorities. Generated schemas are comparison evidence only and never
+ * become editable authority.
+ */
+import "@typespec/json-schema";
+
+using TypeSpec.JsonSchema;
+
 namespace Ores.Rpc.Operation.V1;
 
 enum HttpMethod {
@@ -8,6 +19,20 @@ enum HttpMethod {
   DELETE,
   HEAD,
   OPTIONS,
+}
+
+/**
+ * Lowercase Axum handler function name a `route.rs` HTTP projection binds the
+ * operation to. Distinct from `HttpMethod`, which is the wire method.
+ */
+enum RpcRouteHandler {
+  get,
+  post,
+  put,
+  patch,
+  delete,
+  head,
+  options,
 }
 
 enum RpcAudience {
@@ -26,6 +51,10 @@ enum RpcPayloadCodec {
   messagepack,
 }
 
+/**
+ * RPC streaming mode. When absent, consumers must preserve legacy unary
+ * semantics.
+ */
 enum RpcStreamMode {
   unary,
   server_stream,
@@ -33,37 +62,84 @@ enum RpcStreamMode {
   bidi,
 }
 
+/** One dotted segment of the operation namespace. */
+@minLength(1)
+@pattern("^[a-z][a-z0-9_-]*$")
+scalar RpcNamespaceSegment extends string;
+
+/**
+ * Reference to a schema that lives outside this document: a contract id, a
+ * `$ref` URI, or any other non-empty locator the consuming generator resolves.
+ */
+@minLength(1)
+scalar RpcSchemaReference extends string;
+
+/**
+ * A JSON Schema document carried inline in an operation section slot.
+ * Deliberately open: it is an arbitrary schema, not a shape this contract owns.
+ */
+model RpcInlineSchema is Record<unknown>;
+
+/**
+ * What a request/response section slot holds: either an inline JSON Schema
+ * document or a non-empty reference to one. The two forms are disjoint by JSON
+ * type, so a value matches at most one of them.
+ */
+union RpcSchemaRef {
+  RpcInlineSchema,
+  RpcSchemaReference,
+}
+
+@extension(
+  "dependentRequired",
+  #{ route_file: #["route_handler"], route_handler: #["route_file"] }
+)
 model RpcSource {
+  @pattern("(^|/)handlers\\.rs$")
   handlers_file: string;
+
+  @pattern("^[A-Za-z_][A-Za-z0-9_]*$")
   operation: string;
+
+  @pattern("(^|/)route\\.rs$")
   route_file?: string;
-  route_handler?: "get" | "post" | "put" | "patch" | "delete" | "head" | "options";
+
+  route_handler?: RpcRouteHandler;
+
+  @minLength(1)
   repository?: string;
+
+  @pattern("^[0-9a-f]{40}$")
   commit_sha?: string;
 }
 
 model RpcHttpProjection {
   method: HttpMethod;
+
+  @pattern("^/")
   path: string;
 }
 
 model RpcCodecSet {
+  @minItems(1)
+  @uniqueItems
   allowed: RpcPayloadCodec[];
+
   `default`: RpcPayloadCodec;
 }
 
 model RpcRequestShape {
-  path_schema?: unknown;
-  query_schema?: unknown;
-  header_schema?: unknown;
-  body_schema?: unknown;
+  path_schema?: RpcSchemaRef;
+  query_schema?: RpcSchemaRef;
+  header_schema?: RpcSchemaRef;
+  body_schema?: RpcSchemaRef;
 }
 
 model RpcResponseShape {
-  header_schema?: unknown;
-  trailer_schema?: unknown;
-  body_schema?: unknown;
-  error_schema?: unknown;
+  header_schema?: RpcSchemaRef;
+  trailer_schema?: RpcSchemaRef;
+  body_schema?: RpcSchemaRef;
+  error_schema?: RpcSchemaRef;
 }
 
 model RpcOperation {
@@ -71,21 +147,29 @@ model RpcOperation {
 
   @minLength(3)
   @maxLength(200)
+  @pattern("^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$")
   operation_key: string;
 
-  `namespace`: string[];
+  @minItems(1)
+  `namespace`: RpcNamespaceSegment[];
+
   source: RpcSource;
   rpc_transport_path: "/v1/rpc";
   stream?: RpcStreamMode;
   http?: RpcHttpProjection;
   scope: RpcScope;
+
+  @minItems(1)
+  @uniqueItems
   audiences: RpcAudience[];
+
   codecs: RpcCodecSet;
   request: RpcRequestShape;
   response: RpcResponseShape;
 
   @minLength(64)
   @maxLength(64)
+  @pattern("^[0-9a-f]{64}$")
   contract_sha256: string;
 }
 

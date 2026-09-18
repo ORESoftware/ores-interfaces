@@ -26,6 +26,13 @@ enum RpcPayloadCodec {
   messagepack,
 }
 
+enum RpcStreamMode {
+  unary,
+  server_stream,
+  client_stream,
+  bidi,
+}
+
 model RpcSource {
   handlers_file: string;
   operation: string;
@@ -69,6 +76,7 @@ model RpcOperation {
   namespace: string[];
   source: RpcSource;
   rpc_transport_path: "/v1/rpc";
+  stream?: RpcStreamMode;
   http?: RpcHttpProjection;
   scope: RpcScope;
   audiences: RpcAudience[];

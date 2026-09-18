@@ -56,6 +56,11 @@
       }
     },
     "rpc_transport_path": { "const": "/v1/rpc" },
+    "stream": {
+      "type": "string",
+      "enum": ["unary", "server_stream", "client_stream", "bidi"],
+      "description": "RPC streaming mode. When absent, consumers must preserve legacy unary semantics."
+    },
     "http": {
       "type": "object",
       "additionalProperties": false,

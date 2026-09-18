@@ -1,0 +1,9 @@
+{
+  "plan_version": "1.0.0",
+  "kind": "unary",
+  "key": "demo.users.find_user",
+  "rpc_path": "/v1/rpc",
+  "serial_strategy": "json",
+  "throttle_millis": 200,
+  "debounce_millis": 200
+}

@@ -1,0 +1,7 @@
+{
+  "key": "demo.users.find_user",
+  "kind": "duplex",
+  "plan_version": "1.0.0",
+  "rpc_path": "/v1/rpc",
+  "serial_strategy": "json"
+}

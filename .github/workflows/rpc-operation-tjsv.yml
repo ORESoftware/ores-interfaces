@@ -110,11 +110,34 @@ jobs:
           const event = schema.$defs?.RpcErrorLogEvent;
           if (!event) throw new Error('RpcErrorLogEvent is missing from the authored JSON Schema');
           if (event.additionalProperties !== false) throw new Error('RpcErrorLogEvent must be a closed model');
-          const banned = [/body/i, /payload/i, /header/i, /\bmeta\b/i, /param/i, /query/i, /\bpath\b/i, /cookie/i, /token/i, /user/i, /request/i, /response/i];
+          // The reviewed vocabulary. An ALLOWLIST, not a denylist: a denylist of
+          // payload-sounding words let `error_detail`, `context`, `attributes`,
+          // `extra`, `detail`, `data`, `raw`, `input`, `args` and `fields`
+          // through untouched, and a free-text detail field is exactly where a
+          // caller-supplied URL, path or config value ends up. Every addition to
+          // this model must be an explicit decision recorded here.
+          const allowed = new Set([
+            'schema_version', 'operation_key', 'transport', 'outcome',
+            'error_kind', 'error_code', 'trace_id', 'routine_id',
+            're_raised', 'payload_omitted',
+          ]);
+          for (const name of Object.keys(event.properties ?? {}))
+            if (!allowed.has(name))
+              throw new Error(`RpcErrorLogEvent property ${name} is not in the reviewed payload-free vocabulary; add it here deliberately or drop it`);
+          // Kept as a second line of defence, so an unreviewed widening of the
+          // allowlist above still trips on an obviously payload-bearing name.
+          const banned = [/body/i, /payload/i, /header/i, /\bmeta\b/i, /param/i, /query/i, /\bpath\b/i, /cookie/i, /token/i, /user/i, /request/i, /response/i, /detail/i, /context/i, /\bdata\b/i, /\braw\b/i, /\bextra\b/i, /\bargs\b/i, /\binput\b/i, /attribute/i];
           for (const name of Object.keys(event.properties ?? {})) {
             if (name === 'payload_omitted') continue;
             for (const pattern of banned)
               if (pattern.test(name)) throw new Error(`RpcErrorLogEvent property ${name} looks payload-bearing`);
+          }
+          // Every value in the vocabulary must be a bounded scalar: an object or
+          // array field is a payload no matter what it is called.
+          for (const [name, definition] of Object.entries(event.properties ?? {})) {
+            const type = definition.type ?? (definition.$ref ? 'ref' : undefined);
+            if (type === 'object' || type === 'array')
+              throw new Error(`RpcErrorLogEvent property ${name} is a ${type}; the error-log contract carries scalars only`);
           }
           if (event.properties?.payload_omitted?.const !== true) throw new Error('payload_omitted must be const true');
           for (const required of ['schema_version', 'operation_key', 'transport', 'outcome', 'error_kind', 'error_code', 'trace_id', 're_raised', 'payload_omitted'])

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "operation_key": "billing.invoice.create",
+  "transport": "rpc",
+  "outcome": "error",
+  "error_kind": "validation",
+  "error_code": "rpc.request_invalid",
+  "trace_id": "ores-trace-uXOkCvZNc9WidUlNR7Pvn",
+  "re_raised": true,
+  "payload_omitted": true,
+  "request_body": { "customer_id": "cus_9f2", "amount_cents": 41900 }
+}

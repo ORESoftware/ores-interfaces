@@ -1,0 +1,124 @@
+name: rpc-operation peer-authority admission
+
+on:
+  pull_request:
+    paths:
+      - 'contracts/rpc-operation/**'
+      - '.github/workflows/rpc-operation-tjsv.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'contracts/rpc-operation/**'
+      - '.github/workflows/rpc-operation-tjsv.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rpc-operation-tjsv-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  admission:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      TJSV_SHA: 1614779275115258db73b92c938313e8ae437936
+      CONTRACT_ROOT: contracts/rpc-operation/v1
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          show-progress: false
+      - name: Assert exact reviewed head
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22.16.0'
+          package-manager-cache: false
+      - name: Assert the pinned validator matches the repository policy
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const policy = JSON.parse(readFileSync('shared-interfaces.json', 'utf8'));
+          if (policy.validator?.commit !== process.env.TJSV_SHA)
+            throw new Error(`workflow TJSV pin ${process.env.TJSV_SHA} != shared-interfaces.json ${policy.validator?.commit}`);
+          NODE
+      - name: Admit both authored authorities and the instance corpus
+        run: |
+          set -euo pipefail
+          mkdir -p tmp/rpc-operation
+          npx --yes \
+            --package="https://github.com/ORESoftware/typespec-json-schema-validator/archive/${TJSV_SHA}.tar.gz" \
+            tjsv check \
+            --typespec="$CONTRACT_ROOT/main.tsp" \
+            --schema="$CONTRACT_ROOT/authored.schema.json" \
+            --mapping="$CONTRACT_ROOT/tjsv.mapping.json" \
+            --instances="$CONTRACT_ROOT/instances" \
+            --seal-object-schemas=true \
+            --report=tmp/rpc-operation/report.json \
+            --sarif=tmp/rpc-operation/report.sarif \
+            --contract-ir=tmp/rpc-operation/contract-ir.json \
+            --output-dir=tmp/rpc-operation/generated
+      - name: Require complete clean differential corpus evidence
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const report = JSON.parse(readFileSync('tmp/rpc-operation/report.json', 'utf8'));
+          if (report.status !== 'passed') throw new Error(`TJSV status=${report.status}`);
+          if (report.zeroUnexplainedFindings !== true) throw new Error('unexplained TJSV findings remain');
+          if ((report.findings ?? []).length) throw new Error('unexpected TJSV findings');
+          if (report.coverage?.differentialInstanceValidation !== true) throw new Error('instance differential validation did not run');
+          const summary = report.differential?.summary ?? {};
+          if ((summary.comparedDeclarations ?? 0) < 6) throw new Error(`expected at least 6 compared declarations, got ${summary.comparedDeclarations}`);
+          if ((summary.corpusInstances ?? 0) < 29) throw new Error(`expected the full instance corpus, got ${summary.corpusInstances}`);
+          if ((summary.divergences ?? -1) !== 0) throw new Error('authorities diverged on corpus instances');
+          if ((summary.refusals ?? -1) !== 0) throw new Error('differential validator refused evidence');
+          if ((report.counts?.differentialFindings ?? -1) !== 0) throw new Error('differential findings remain');
+          NODE
+      - name: Prove the error-log contract stays payload-free and closed
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const root = process.env.CONTRACT_ROOT;
+          const schema = JSON.parse(readFileSync(`${root}/authored.schema.json`, 'utf8'));
+          const event = schema.$defs?.RpcErrorLogEvent;
+          if (!event) throw new Error('RpcErrorLogEvent is missing from the authored JSON Schema');
+          if (event.additionalProperties !== false) throw new Error('RpcErrorLogEvent must be a closed model');
+          const banned = [/body/i, /payload/i, /header/i, /\bmeta\b/i, /param/i, /query/i, /\bpath\b/i, /cookie/i, /token/i, /user/i, /request/i, /response/i];
+          for (const name of Object.keys(event.properties ?? {})) {
+            if (name === 'payload_omitted') continue;
+            for (const pattern of banned)
+              if (pattern.test(name)) throw new Error(`RpcErrorLogEvent property ${name} looks payload-bearing`);
+          }
+          if (event.properties?.payload_omitted?.const !== true) throw new Error('payload_omitted must be const true');
+          for (const required of ['schema_version', 'operation_key', 'transport', 'outcome', 'error_kind', 'error_code', 'trace_id', 're_raised', 'payload_omitted'])
+            if (!(event.required ?? []).includes(required)) throw new Error(`RpcErrorLogEvent must require ${required}`);
+          const ids = {
+            OresTraceId: '^ores-trace-[A-Za-z0-9_-]{21}$',
+            OresRoutineId: '^ores-routine-[A-Za-z0-9_-]{21}$',
+          };
+          const tsp = readFileSync(`${root}/main.tsp`, 'utf8');
+          for (const [name, pattern] of Object.entries(ids)) {
+            if (schema.$defs?.[name]?.pattern !== pattern) throw new Error(`${name} authored pattern drifted from ${pattern}`);
+            if (!tsp.includes(`@pattern("${pattern}")`)) throw new Error(`${name} TypeSpec pattern drifted from ${pattern}`);
+          }
+          NODE
+      - name: Require an unmutated authored checkout
+        run: git diff --exit-code HEAD
+      - name: Retain admission evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: rpc-operation-${{ github.event.pull_request.head.sha || github.sha }}
+          path: tmp/rpc-operation/
+          if-no-files-found: error
+          retention-days: 30

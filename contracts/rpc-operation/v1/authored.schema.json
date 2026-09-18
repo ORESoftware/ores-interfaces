@@ -125,5 +125,89 @@
         "error_schema": { "$ref": "#/$defs/schemaRef" }
       }
     }
+,
+    "OresTraceId": {
+      "description": "Static call-site trace identifier emitted as an inline literal by the generator: the fixed prefix ores-trace- followed by a 21-character nanoid alphabet run. Independently authored peer of the ores-otel/ores.otel.log contracts/ores-ids declaration of the same name.",
+      "type": "string",
+      "pattern": "^ores-trace-[A-Za-z0-9_-]{21}$"
+    },
+    "OresRoutineId": {
+      "description": "Static routine identifier declared once per generated dispatch function: the fixed prefix ores-routine- followed by a 21-character nanoid alphabet run. Independently authored peer of the ores-otel/ores.otel.log contracts/ores-ids declaration of the same name.",
+      "type": "string",
+      "pattern": "^ores-routine-[A-Za-z0-9_-]{21}$"
+    },
+    "RpcErrorTransport": {
+      "description": "Carrier the failed invocation arrived on. Identity only; no address, authority, path or header value is ever recorded.",
+      "type": "string",
+      "enum": ["rpc", "http", "in_process"]
+    },
+    "RpcDispatchOutcome": {
+      "description": "What the guarded dispatch did. A guarded dispatch that succeeds emits no RpcErrorLogEvent at all.",
+      "type": "string",
+      "enum": ["error", "panic", "timeout", "cancelled"]
+    },
+    "RpcErrorKind": {
+      "description": "Coarse, language-neutral classification of the trapped failure. Closed set so that a new kind is a contract change rather than a free-text channel.",
+      "type": "string",
+      "enum": [
+        "transport",
+        "codec",
+        "validation",
+        "authorization",
+        "not_found",
+        "conflict",
+        "rate_limited",
+        "unavailable",
+        "timeout",
+        "cancelled",
+        "panic",
+        "internal"
+      ]
+    },
+    "RpcErrorLogEvent": {
+      "description": "The one telemetry event a guarded RPC dispatch emits before re-raising the error. The property set is closed and payload-free by construction: there is no request or response body, no path or query value, no header, no meta object and no user data anywhere in the shape, and additionalProperties false turns any attempt to add one into an admission failure rather than a leak.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "operation_key",
+        "transport",
+        "outcome",
+        "error_kind",
+        "error_code",
+        "trace_id",
+        "re_raised",
+        "payload_omitted"
+      ],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "operation_key": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200,
+          "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$"
+        },
+        "transport": { "$ref": "#/$defs/RpcErrorTransport" },
+        "outcome": { "$ref": "#/$defs/RpcDispatchOutcome" },
+        "error_kind": { "$ref": "#/$defs/RpcErrorKind" },
+        "error_code": {
+          "description": "Stable, generator-assigned code. Never an exception message, stack, or any value derived from the request.",
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
+        },
+        "trace_id": { "$ref": "#/$defs/OresTraceId" },
+        "routine_id": { "$ref": "#/$defs/OresRoutineId" },
+        "re_raised": {
+          "description": "True records that the trapped error was re-raised (returned unchanged, rethrown, resume_unwind-ed or re-panicked) instead of swallowed.",
+          "type": "boolean"
+        },
+        "payload_omitted": {
+          "description": "Explicit machine-checkable declaration that the event carries no payload data. Always true.",
+          "const": true
+        }
+      }
+    }
   }
 }

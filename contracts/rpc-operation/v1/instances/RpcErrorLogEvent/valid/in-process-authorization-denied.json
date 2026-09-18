@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "operation_key": "admin.tenant.suspend",
+  "transport": "in_process",
+  "outcome": "error",
+  "error_kind": "authorization",
+  "error_code": "auth.scope_denied",
+  "trace_id": "ores-trace-QPNfNqvdEh6Ya3AW9KQRY",
+  "routine_id": "ores-routine-slPArT5Azw5DXUfSwEvRh",
+  "re_raised": true,
+  "payload_omitted": true
+}

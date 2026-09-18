@@ -1,8 +1,12 @@
 {
   "name": "rpc-operation-v1",
   "typespec": "main.tsp",
-  "json_schema": "authored.schema.json",
+  "jsonSchema": "authored.schema.json",
   "json_schema_draft": "2020-12",
   "authorities": ["typespec", "json_schema"],
-  "notes": "Normalized operation IR shared by api-docs, ores-stack, ores-cli and generated Rust/Go/Dart/TypeScript/Gleam RPC clients. handlers.rs owns the semantic operation; route.rs/HTTP metadata are optional projections. Optional stream metadata is language-neutral; absence preserves legacy unary semantics."
+  "mapping": "tjsv.mapping.json",
+  "tjsv": {
+    "sealObjectSchemas": true
+  },
+  "notes": "Normalized operation IR shared by api-docs, ores-stack, ores-cli and generated Rust/Go/Dart/TypeScript/Gleam RPC clients. handlers.rs owns the semantic operation; route.rs/HTTP metadata are optional projections. Optional stream metadata is language-neutral; absence preserves legacy unary semantics. The same pair also carries the payload-free RPC error-logging declarations (OresTraceId, OresRoutineId, RpcErrorTransport, RpcDispatchOutcome, RpcErrorKind, RpcErrorLogEvent); tjsv.mapping.json scopes TJSV comparison to those declarations until the older RpcOperation declarations are brought to parity."
 }

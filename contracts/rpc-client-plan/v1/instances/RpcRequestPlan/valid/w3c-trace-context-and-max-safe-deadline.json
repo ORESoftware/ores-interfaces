@@ -1,0 +1,10 @@
+{
+  "plan_version": "1.0.0",
+  "kind": "unary",
+  "key": "demo.users.find_user",
+  "rpc_path": "/v1/rpc",
+  "serial_strategy": "json",
+  "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+  "span_id": "00f067aa0ba902b7",
+  "deadline_unix_millis": 9007199254740991
+}

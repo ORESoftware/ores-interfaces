@@ -81,8 +81,11 @@ model RpcRequestPlan {
   plan_version: "1.0.0";
   kind: RpcSurface;
 
-  /// Canonical dotted rpc_key, matching the operation contract.
-  @minLength(1)
+  /// Canonical dotted rpc_key, identical to rpc-operation/v1's operation_key
+  /// grammar. A plan names an operation, so the two contracts must agree on
+  /// what an operation may be called.
+  @minLength(3)
+  @pattern("^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$")
   key: string;
 
   /// Absolute path carrying the envelope. `/v1/rpc` fleet-wide.
@@ -93,6 +96,9 @@ model RpcRequestPlan {
   serial_strategy: RpcSerialStrategy;
   compression?: RpcCompression;
 
+  /// Redaction is applied at the plan boundary, not per option: any header
+  /// whose name matches the client redaction lists is replaced with the
+  /// placeholder before serialization, whatever wrote it.
   headers?: Record<unknown>;
   path?: Record<unknown>;
   query?: Record<unknown>;
@@ -102,7 +108,11 @@ model RpcRequestPlan {
   @maxValue(600000)
   timeout_millis?: int32;
 
+  /// Bounded by Number.MAX_SAFE_INTEGER: the plan is JSON and must round-trip
+  /// exactly in runtimes with double-precision numbers, or plans stop comparing
+  /// equal across languages.
   @minValue(0)
+  @maxValue(9007199254740991)
   deadline_unix_millis?: int64;
 
   @minValue(0)
@@ -121,18 +131,23 @@ model RpcRequestPlan {
   require_fresh?: boolean;
   skip_edge_cache?: boolean;
 
-  @minLength(1)
-  @maxLength(64)
+  /// W3C trace-context trace-id: 32 lowercase hex digits. Dynamic
+  /// per-invocation context, distinct from the static ores_trace_id source
+  /// identity carried by the RPC error-log contract.
+  @pattern("^[0-9a-f]{32}$")
   trace_id?: string;
 
-  @minLength(1)
-  @maxLength(32)
+  /// W3C trace-context parent span-id: 16 lowercase hex digits.
+  @pattern("^[0-9a-f]{16}$")
   span_id?: string;
 
   debug?: boolean;
 
   new_agent?: boolean;
-  proxy_url?: url;
+  /// Userinfo is stripped and replaced with the redaction placeholder before
+  /// serialization, so `user:password@host` cannot appear.
+  @pattern("^[a-zA-Z][a-zA-Z0-9+.-]*://(?:\\[redacted\\]@)?[^@/?#]*(?:[/?#].*)?$")
+  proxy_url?: string;
   ip_version?: RpcIpVersion;
   keep_alive?: boolean;
   skip_tls_verify?: boolean;

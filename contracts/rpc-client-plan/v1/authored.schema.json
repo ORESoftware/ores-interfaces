@@ -24,9 +24,9 @@
     },
     "key": {
       "type": "string",
-      "minLength": 1,
-      "pattern": "^(?:[A-Za-z][A-Za-z0-9_]*|[a-z][a-z0-9_-]*(?:\\.[a-z][a-z0-9_-]*)+)$",
-      "description": "Canonical dotted rpc_key, matching rpc-call.schema.json."
+      "minLength": 3,
+      "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$",
+      "description": "Canonical dotted rpc_key, identical to rpc-operation/v1's operation_key grammar. A plan names an operation, so the two contracts must agree on what an operation may be called. ORESoftware/api-docs additionally admits a legacy single-identifier spelling inside its own consumer copy during migration; that affordance is deliberately not part of the fleet contract."
     },
     "rpc_path": {
       "type": "string",
@@ -47,7 +47,8 @@
         "type": "string",
         "maxLength": 128,
         "pattern": "^[!#$%&'*+.^_`|~0-9a-z-]+$"
-      }
+      },
+      "description": "Normalized request headers. Redaction is applied at the plan boundary, not per option: any header whose name matches the client redaction lists is replaced with the redaction placeholder before serialization, whatever wrote it. A credential value therefore cannot appear here even though the shape admits arbitrary header names."
     },
     "path": {
       "type": "object"
@@ -78,7 +79,9 @@
     },
     "deadline_unix_millis": {
       "type": "integer",
-      "minimum": 0
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "Absolute deadline in Unix milliseconds. Bounded by Number.MAX_SAFE_INTEGER because the plan is JSON and must round-trip exactly in runtimes with double-precision numbers; a larger value would compare unequal across languages and break plan parity."
     },
     "retry_count": {
       "type": "integer",
@@ -100,8 +103,8 @@
         },
         "factor": {
           "type": "number",
-          "minimum": 1.0,
-          "maximum": 10.0
+          "minimum": 1,
+          "maximum": 10
         }
       }
     },
@@ -128,13 +131,19 @@
     },
     "trace_id": {
       "type": "string",
-      "minLength": 1,
-      "maxLength": 64
+      "pattern": "^[0-9a-f]{32}$",
+      "not": {
+        "const": "00000000000000000000000000000000"
+      },
+      "description": "W3C trace-context trace-id: 32 lowercase hex digits, not all zero. This is dynamic per-invocation context, distinct from the static ores_trace_id source identity carried by the RPC error-log contract."
     },
     "span_id": {
       "type": "string",
-      "minLength": 1,
-      "maxLength": 32
+      "pattern": "^[0-9a-f]{16}$",
+      "not": {
+        "const": "0000000000000000"
+      },
+      "description": "W3C trace-context parent span-id: 16 lowercase hex digits, not all zero."
     },
     "debug": {
       "type": "boolean"
@@ -144,7 +153,9 @@
     },
     "proxy_url": {
       "type": "string",
-      "format": "uri"
+      "format": "uri",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9+.-]*://(?:\\[redacted\\]@)?[^@/?#]*(?:[/?#].*)?$",
+      "description": "Proxy endpoint. Userinfo is stripped and replaced with the redaction placeholder before serialization, so `user:password@host` cannot appear."
     },
     "ip_version": {
       "enum": [

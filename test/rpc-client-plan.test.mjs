@@ -128,3 +128,50 @@ test('the family config declares two distinct peer authorities', async () => {
   // deadline_unix_millis is an int64 carried as a JSON number, not a string.
   assert.equal(config.tjsv.int64Strategy, 'number');
 });
+
+test('the tightened rules each have a negative instance naming them', async () => {
+  const names = (await readdir(join(instancesDir, 'invalid'))).sort();
+  for (const expected of [
+    'legacy-non-dotted-operation-key.json',
+    'proxy-url-carrying-userinfo.json',
+    'trace-id-not-lowercase-hex.json',
+    'trace-id-wrong-length.json',
+    'span-id-wrong-length.json',
+    'deadline-beyond-js-safe-integer.json',
+  ]) {
+    assert.ok(names.includes(expected), `the corpus must cover ${expected}`);
+  }
+});
+
+test('the operation-key grammar matches rpc-operation/v1', async () => {
+  const peer = JSON.parse(
+    await readFile('contracts/rpc-operation/v1/authored.schema.json', 'utf8'),
+  );
+  // A plan names an operation. If the two grammars drift, a key can be valid in
+  // one contract and rejected by the other, which is exactly the class of gap
+  // this registry exists to close.
+  assert.equal(schema.properties.key.pattern, peer.properties.operation_key.pattern);
+  assert.equal(schema.properties.key.minLength, peer.properties.operation_key.minLength);
+});
+
+test('a credential cannot be expressed in a plan, not merely discouraged', () => {
+  // proxy_url admits only a stripped authority.
+  const proxy = new RegExp(schema.properties.proxy_url.pattern);
+  assert.equal(proxy.test('http://user:pw@proxy.internal:8080'), false);
+  assert.equal(proxy.test('http://[redacted]@proxy.internal:8080'), true);
+  assert.equal(proxy.test('http://proxy.internal:8080'), true);
+  // and the description says redaction is a boundary property.
+  assert.match(schema.properties.headers.description, /boundary/i);
+});
+
+test('W3C trace context is constrained to the spec shape', () => {
+  assert.equal(new RegExp(schema.properties.trace_id.pattern).test('4bf92f3577b34da6a3ce929d0e0e4736'), true);
+  assert.equal(new RegExp(schema.properties.span_id.pattern).test('00f067aa0ba902b7'), true);
+  // All-zero is invalid per the spec and is excluded explicitly.
+  assert.equal(schema.properties.trace_id.not.const, '0'.repeat(32));
+  assert.equal(schema.properties.span_id.not.const, '0'.repeat(16));
+});
+
+test('an int64 carried as a JSON number stays exactly representable', () => {
+  assert.equal(schema.properties.deadline_unix_millis.maximum, Number.MAX_SAFE_INTEGER);
+});

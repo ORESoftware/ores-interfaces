@@ -141,6 +141,7 @@ test('the tightened rules each have a negative instance naming them', async () =
   for (const expected of [
     'legacy-non-dotted-operation-key.json',
     'proxy-url-carrying-userinfo.json',
+    'query-sensitive-substring-in-the-clear.json',
     'trace-id-not-lowercase-hex.json',
     'trace-id-wrong-length.json',
     'span-id-wrong-length.json',
@@ -221,15 +222,25 @@ test('every negative is one field away from a document both authorities accept',
   }
 });
 
-test('query fields are redacted at the plan boundary, like headers', () => {
+test('query fields follow the client sensitive-name policy at the plan boundary', () => {
   const query = resolve(plan.properties.query);
   const [pattern, rule] = Object.entries(query.patternProperties)[0];
   assert.deepEqual(rule, { const: '[redacted]' });
   const names = new RegExp(pattern);
-  for (const name of ['access_token', 'access-token', 'api_key', 'api-key', 'apikey', 'sig', 'token']) {
+  for (const name of [
+    'access_token',
+    'access-token',
+    'api_key',
+    'tenant-api-key',
+    'x_refresh_token',
+    'client_secret',
+    'signature_version',
+    'sig',
+    'token',
+  ]) {
     assert.ok(names.test(name), `${name} must be held to the placeholder`);
   }
-  for (const name of ['page', 'signature_version', 'tokens']) {
+  for (const name of ['page', 'limit', 'sort', 'tokens']) {
     assert.ok(!names.test(name), `${name} is not a credential field`);
   }
 });

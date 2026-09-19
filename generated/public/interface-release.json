@@ -11,7 +11,7 @@
     "commit": "1614779275115258db73b92c938313e8ae437936"
   },
   "authorityModel": "independent-typespec-and-json-schema-peers",
-  "admissionRunId": "c04c0367f5f17e6db9511a8f79bea42e8627d33b590baf4bbe01d685041bf819",
+  "admissionRunId": "b1cd68d70d33a074cbc7a3f7eb04e9d060edfeaaabbdddf1accf84e638a1491d",
   "declarations": [
     "Ores.Validation.GitHubActionsBuildLogEvent",
     "Ores.Validation.GitHubActionsLogStream",
@@ -28,11 +28,11 @@
       "sha256": "391354e9e6144a556747a7db4cf87bf1b01f68a86761b561452eb8af918dfdc9"
     },
     "provenance.json": {
-      "sha256": "fae986eb35780ec392ae860aa163985d664c0e2fd2b318ea35a0c21d57028668"
+      "sha256": "277c61e1a8e47a1c69fd8d3c576af3383a546d307b9ff527965be0e26de7fc26"
     },
     "schema.json": {
       "sha256": "da6d98a2d6c538ee18132c6035cab46dd1bb45e333ec4c25f22db47b9043a834"
     }
   },
-  "releaseId": "40572411ef6c9d500f5c79b9cfe4a07ecbe9cf6fb03f8ececff8f36968c997c0"
+  "releaseId": "446d510abc0d02ab9b3ab6d4ea0158ae5d1a88a73f8788a1b9687a5440d5fe9e"
 }

@@ -62,8 +62,8 @@
     "status": "passed",
     "validatorRepository": "ORESoftware/typespec-json-schema-validator",
     "validatorRevision": "1614779275115258db73b92c938313e8ae437936",
-    "irId": "e52a3930658aa2f6fa32c58c08f768d933b29410414bb4b0536865ba07166b80",
-    "runId": "c04c0367f5f17e6db9511a8f79bea42e8627d33b590baf4bbe01d685041bf819",
+    "irId": "28284be6c3a73bfb73d97e670a324fde92919c51bc6b7ba8e4293078d45625f8",
+    "runId": "b1cd68d70d33a074cbc7a3f7eb04e9d060edfeaaabbdddf1accf84e638a1491d",
     "declarations": [
       "Ores.Validation.GitHubActionsBuildLogEvent",
       "Ores.Validation.GitHubActionsLogStream",
@@ -85,5 +85,5 @@
     "main.tsp": "391354e9e6144a556747a7db4cf87bf1b01f68a86761b561452eb8af918dfdc9",
     "schema.json": "da6d98a2d6c538ee18132c6035cab46dd1bb45e333ec4c25f22db47b9043a834"
   },
-  "packageId": "a6f7ad21c3609d6b3472b23744de893f96f753213a3b5105211e4bdc203a67da"
+  "packageId": "e0ddd39f166737336da8377dd6dfaf558564953a20300cdd250007a3111903b6"
 }

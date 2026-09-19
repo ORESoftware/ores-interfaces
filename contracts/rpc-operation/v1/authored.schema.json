@@ -283,7 +283,7 @@
       ]
     },
     "RpcErrorLogEvent": {
-      "description": "The one telemetry event a guarded RPC dispatch emits before re-raising the error. The property set is closed and payload-free by construction: there is no request or response body, no path or query value, no header, no meta object and no user data anywhere in the shape, and additionalProperties false turns any attempt to add one into an admission failure rather than a leak. Identity fields are split by origin: ores_trace_id and ores_routine_id are STATIC call-site identities the generator emits as inline literals, while trace_id and span_id are DYNAMIC W3C trace-context values that vary per invocation. They were previously both called trace_id, which made a log join silently conflate a source location with an invocation.",
+      "description": "The one telemetry event a guarded RPC dispatch emits before re-raising the error. The property set is closed and payload-free by construction: there is no request or response body, no path or query value, no header, no meta object and no user data anywhere in the shape, and additionalProperties false turns any attempt to add one into an admission failure rather than a leak. Identity fields are split by origin: ores_trace_id and ores_routine_id are STATIC call-site identities the generator emits as inline literals, while trace_id and span_id are DYNAMIC W3C trace-context values that vary per invocation. A span_id is admitted only together with its trace_id; an orphan span cannot identify a trace.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -347,7 +347,7 @@
           "$ref": "#/$defs/OresRoutineId"
         },
         "span_id": {
-          "description": "W3C trace-context span-id for the invocation: 16 lowercase hex digits, not all zero. Optional for the same reason as trace_id.",
+          "description": "W3C trace-context span-id for the invocation: 16 lowercase hex digits, not all zero. When present, trace_id is required.",
           "type": "string",
           "pattern": "^[0-9a-f]{16}$",
           "not": {
@@ -358,6 +358,11 @@
           "$ref": "#/$defs/RpcLayer",
           "description": "Which seam emitted this event: a classification, not a correlation key. One error legitimately produces more than one log line as it crosses seams — a handler failure is re-raised through dispatch and observed again at the transport — and this field says which of those a line is. It does NOT say that two lines describe the same failure. That takes the W3C trace_id and span_id; where they are absent, two independent failures at one call site and one layer are indistinguishable in this contract, and a consumer must not deduplicate on (ores_trace_id, rpc_layer) alone."
         }
+      },
+      "dependentRequired": {
+        "span_id": [
+          "trace_id"
+        ]
       }
     },
     "RpcLayer": {

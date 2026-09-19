@@ -1,3 +1,6 @@
+import "@typespec/json-schema";
+using TypeSpec.JsonSchema;
+
 namespace Ores.Rpc.ClientPlan.V1;
 
 /// Which client surface produced a plan.
@@ -60,6 +63,31 @@ enum RpcTransport {
   nats,
 }
 
+/// Normalized request headers: lowercase RFC 9110 field names.
+///
+/// A named declaration rather than an inline `Record<unknown>` so both peers
+/// declare it and TJSV compares it.
+@extension("propertyNames", #{ type: "string", maxLength: 128, pattern: "^[!#$%&'*+.^_\`|~0-9a-z-]+$" })
+model RpcHeaders is Record<unknown>;
+
+/// Path-template fields, by placeholder name.
+model RpcPathFields is Record<unknown>;
+
+/// Request query fields, redacted at the plan boundary exactly as headers are.
+///
+/// A field whose name matches the client redaction lists carries the
+/// placeholder, whatever wrote it. The pattern pins the canonical lowercase
+/// spellings; clients match case-insensitively, which a JSON Schema pattern
+/// cannot express, so other casings are the client conformance suite's to
+/// prove, not this contract's.
+@extension(
+  "patternProperties",
+  #{
+    `^(access[-_]token|api[-_]key|apikey|auth|password|secret|sig|signature|token)$`: #{ `const`: "[redacted]" },
+  }
+)
+model RpcQuery is Record<unknown>;
+
 /// Exponential backoff schedule applied between retries.
 model RpcRetryBackoff {
   @minValue(1)
@@ -77,6 +105,62 @@ model RpcRetryBackoff {
 /// TypeScript, Dart, Go and Gleam must serialize to a byte-identical plan.
 /// Options are grouped so that contradictory selections are unrepresentable in
 /// a typed client; the plan is the untyped backstop for producers that are not.
+///
+/// The cross-field rules below are authored HERE as well as in the JSON Schema
+/// peer. They used to live only there, and the two peers were never compared:
+/// the authored schema had no named declarations, so TJSV matched nothing and
+/// reported zero probes. Five reviewed negative instances were rejected by one
+/// authority and accepted by the other without anything noticing.
+@extension(
+  "allOf",
+  #[
+    // A streaming plan rejects unary-only shaping.
+    #{
+      `if`: #{ properties: #{ kind: #{ `const`: "stream" } }, required: #["kind"] },
+      then: #{
+        not: #{
+          anyOf: #[
+            #{ required: #["fallback"] },
+            #{ required: #["cache_ttl_seconds"] },
+            #{ required: #["stale_while_revalidate_seconds"] },
+            #{ required: #["dry_run"] },
+            #{ required: #["dedupe"] },
+            #{ required: #["throttle_millis"] },
+            #{ required: #["debounce_millis"] }
+          ],
+        },
+      },
+    },
+    // A unary plan rejects stream-only shaping.
+    #{
+      `if`: #{ properties: #{ kind: #{ `const`: "unary" } }, required: #["kind"] },
+      then: #{
+        not: #{
+          anyOf: #[
+            #{ required: #["backpressure"] },
+            #{ required: #["stream_buffer_capacity"] },
+            #{ required: #["stream_idle_timeout_millis"] },
+            #{ required: #["sample_each_millis"] },
+            #{ required: #["throttle_each_millis"] },
+            #{ required: #["debounce_each_millis"] }
+          ],
+        },
+      },
+    },
+    // Unary outbound rate shaping is mutually exclusive.
+    #{ not: #{ required: #["throttle_millis", "debounce_millis"] } },
+    // Stream inbound rate shaping is mutually exclusive.
+    #{
+      allOf: #[
+        #{ not: #{ required: #["sample_each_millis", "throttle_each_millis"] } },
+        #{ not: #{ required: #["sample_each_millis", "debounce_each_millis"] } },
+        #{ not: #{ required: #["throttle_each_millis", "debounce_each_millis"] } }
+      ],
+    },
+    // A retry backoff schedule requires a retry budget.
+    #{ `if`: #{ required: #["retry_backoff"] }, then: #{ required: #["retry_count"] } }
+  ]
+)
 model RpcRequestPlan {
   plan_version: "1.0.0";
   kind: RpcSurface;
@@ -89,6 +173,7 @@ model RpcRequestPlan {
   key: string;
 
   /// Absolute path carrying the envelope. `/v1/rpc` fleet-wide.
+  @pattern("^/.*")
   rpc_path: string;
 
   transport?: RpcTransport;
@@ -99,9 +184,17 @@ model RpcRequestPlan {
   /// Redaction is applied at the plan boundary, not per option: any header
   /// whose name matches the client redaction lists is replaced with the
   /// placeholder before serialization, whatever wrote it.
-  headers?: Record<unknown>;
-  path?: Record<unknown>;
-  query?: Record<unknown>;
+  headers?: RpcHeaders;
+  path?: RpcPathFields;
+
+  /// Redacted at the plan boundary exactly as headers are: a field whose name
+  /// matches the client redaction lists (`access_token`, `api-key`, `sig`,
+  /// `token`, ...) carries the placeholder, whatever wrote it. The shape admits
+  /// arbitrary field names, so the rule is about VALUES and is enforced on the
+  /// canonical lowercase spellings of the shared redaction list. Clients match
+  /// case-insensitively; a JSON Schema pattern cannot, so other casings are the
+  /// client conformance suite's to prove, not this contract's.
+  query?: RpcQuery;
   body?: unknown;
 
   @minValue(1)
@@ -135,19 +228,23 @@ model RpcRequestPlan {
   /// per-invocation context, distinct from the static ores_trace_id source
   /// identity carried by the RPC error-log contract.
   @pattern("^[0-9a-f]{32}$")
+  @extension("not", #{ `const`: "00000000000000000000000000000000" })
   trace_id?: string;
 
   /// W3C trace-context parent span-id: 16 lowercase hex digits.
   @pattern("^[0-9a-f]{16}$")
+  @extension("not", #{ `const`: "0000000000000000" })
   span_id?: string;
 
   debug?: boolean;
 
   new_agent?: boolean;
-  /// Userinfo is stripped and replaced with the redaction placeholder before
-  /// serialization, so `user:password@host` cannot appear.
-  @pattern("^[a-zA-Z][a-zA-Z0-9+.-]*://(?:\\[redacted\\]@)?[^@/?#]*(?:[/?#].*)?$")
-  proxy_url?: string;
+  /// Userinfo is replaced before serialization with the literal `redacted`, so
+  /// `user:password@host` cannot appear. Not `[redacted]`: square brackets are
+  /// not valid RFC 3986 userinfo, so that spelling made every redacted proxy
+  /// URL fail the `uri` format this field also asserts.
+  @pattern("^[a-zA-Z][a-zA-Z0-9+.-]*://(?:redacted@)?[^@/?#]*(?:[/?#].*)?$")
+  proxy_url?: url;
   ip_version?: RpcIpVersion;
   keep_alive?: boolean;
   skip_tls_verify?: boolean;

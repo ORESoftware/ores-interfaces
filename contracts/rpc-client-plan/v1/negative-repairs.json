@@ -46,6 +46,10 @@
       "field": "query",
       "repair": "replaced"
     },
+    "query-sensitive-substring-in-the-clear": {
+      "field": "query",
+      "repair": "replaced"
+    },
     "rpc-path-not-absolute": {
       "field": "rpc_path",
       "repair": "replaced"

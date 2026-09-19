@@ -66,8 +66,16 @@ enum RpcTransport {
 /// Normalized request headers: lowercase RFC 9110 field names.
 ///
 /// A named declaration rather than an inline `Record<unknown>` so both peers
-/// declare it and TJSV compares it.
+/// declare it and TJSV compares it. Credential-bearing names are constrained to
+/// the placeholder here as well as in the client: the contract must make the
+/// "plans never carry credentials" guarantee machine-checkable, not descriptive.
 @extension("propertyNames", #{ type: "string", maxLength: 128, pattern: "^[!#$%&'*+.^_\`|~0-9a-z-]+$" })
+@extension(
+  "patternProperties",
+  #{
+    `^(?:(?:authentication|authorization|cookie|proxy[-_]authorization|set[-_]cookie|www[-_]authenticate|x[-_]amz[-_]security[-_]token|x[-_]auth[-_]token|x[-_]csrf[-_]token|x[-_]session[-_]token|x[-_]xsrf[-_]token)|.*(?:access[-_]token|api[-_]?key|auth[-_]token|credential|id[-_]token|password|private[-_]key|refresh[-_]token|secret|session[-_]id|signature).*)$`: #{ `const`: "[redacted]" },
+  }
+)
 model RpcHeaders is Record<unknown>;
 
 /// Path-template fields, by placeholder name.
@@ -101,7 +109,7 @@ model RpcRetryBackoff {
 
 /// Canonical, transport-free serialization of a fully built RPC client chain.
 ///
-/// A plan is the cross-language conformance unit: the same chain in Rust,
+/// A plan is the cross-language conformance unit: the same chain built in Rust,
 /// TypeScript, Dart, Go and Gleam must serialize to a byte-identical plan.
 /// Options are grouped so that contradictory selections are unrepresentable in
 /// a typed client; the plan is the untyped backstop for producers that are not.
@@ -111,6 +119,7 @@ model RpcRetryBackoff {
 /// the authored schema had no named declarations, so TJSV matched nothing and
 /// reported zero probes. Five reviewed negative instances were rejected by one
 /// authority and accepted by the other without anything noticing.
+@extension("dependentRequired", #{ span_id: #["trace_id"] })
 @extension(
   "allOf",
   #[
@@ -227,7 +236,9 @@ model RpcRequestPlan {
   @extension("not", #{ `const`: "00000000000000000000000000000000" })
   trace_id?: string;
 
-  /// W3C trace-context parent span-id: 16 lowercase hex digits.
+  /// W3C trace-context parent span-id: 16 lowercase hex digits. A span is only
+  /// meaningful inside a trace, so the model-level dependency above requires
+  /// trace_id whenever span_id is present.
   @pattern("^[0-9a-f]{16}$")
   @extension("not", #{ `const`: "0000000000000000" })
   span_id?: string;

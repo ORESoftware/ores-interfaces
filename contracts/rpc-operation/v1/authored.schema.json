@@ -355,15 +355,20 @@
           }
         },
         "rpc_layer": {
-          "description": "Which seam emitted this event. One error legitimately produces more than one log line as it crosses seams — a handler failure is re-raised through dispatch and observed again at the transport — so without this a deduplicator cannot tell a genuine duplicate from a double-log bug.",
-          "enum": [
-            "handler",
-            "dispatch",
-            "transport",
-            "client"
-          ]
+          "$ref": "#/$defs/RpcLayer",
+          "description": "Which seam emitted this event: a classification, not a correlation key. One error legitimately produces more than one log line as it crosses seams — a handler failure is re-raised through dispatch and observed again at the transport — and this field says which of those a line is. It does NOT say that two lines describe the same failure. That takes the W3C trace_id and span_id; where they are absent, two independent failures at one call site and one layer are indistinguishable in this contract, and a consumer must not deduplicate on (ores_trace_id, rpc_layer) alone."
         }
       }
+    },
+    "RpcLayer": {
+      "type": "string",
+      "description": "The seam that emitted an RPC error-log event.",
+      "enum": [
+        "handler",
+        "dispatch",
+        "transport",
+        "client"
+      ]
     }
   }
 }

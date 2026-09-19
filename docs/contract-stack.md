@@ -75,7 +75,15 @@ every consumer needs precedence rules and the ambiguity the correction was meant
 to remove survives it. A version boundary separates the two meanings; an alias
 merges them.
 
-Record every in-place correction in the family's `README.md`, stating what the
+Declare every in-place correction in the family's `corrections.json`. That is
+what makes condition 1 a gate rather than a sentence:
+`test/contract-corrections.test.mjs` fails unless the package is `private`,
+`contracts/` is outside its released file set, and none of the corrected
+declarations appears in anything the package ships — so the permission expires
+on its own when the family is released. Condition 2 cannot be checked from this
+repository, and the declaration must say so rather than imply it was.
+
+Record every in-place correction in the family's `README.md` as well, stating what the
 old shape meant and why it could not stand. A correction that leaves no trace is
 indistinguishable from the contract having always said the new thing.
 

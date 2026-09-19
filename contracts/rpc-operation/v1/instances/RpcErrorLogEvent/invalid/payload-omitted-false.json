@@ -7,5 +7,6 @@
   "error_code": "rpc.dispatch_failed",
   "re_raised": true,
   "payload_omitted": false,
-  "ores_trace_id": "ores-trace-uXOkCvZNc9WidUlNR7Pvn"
+  "ores_trace_id": "ores-trace-uXOkCvZNc9WidUlNR7Pvn",
+  "rpc_layer": "dispatch"
 }

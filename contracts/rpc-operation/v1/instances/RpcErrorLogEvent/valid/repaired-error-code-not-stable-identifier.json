@@ -4,9 +4,9 @@
   "transport": "rpc",
   "outcome": "error",
   "error_kind": "internal",
-  "error_code": "rpc.dispatch_failed",
+  "error_code": "db.pool_timed_out",
   "re_raised": true,
   "payload_omitted": true,
-  "ores_trace_id": "dd-trace-uXOkCvZNc9WidUlNR7Pvn",
+  "ores_trace_id": "ores-trace-uXOkCvZNc9WidUlNR7Pvn",
   "rpc_layer": "dispatch"
 }

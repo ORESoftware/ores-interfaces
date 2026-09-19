@@ -1,0 +1,12 @@
+{
+  "$comment": "In-place corrections to this admitted version. docs/contract-stack.md allows one only while the family is outside the released surface; test/contract-corrections.test.mjs checks that from the repository's own release artifacts on every run, so the permission lapses by itself the moment this family is released. Prose rationale lives in README.md under 'Corrections to this version'.",
+  "family": "rpc-operation/v1",
+  "corrections": [
+    {
+      "id": "error-log-identity-naming",
+      "declarations": ["RpcErrorLogEvent", "RpcLayer", "OresTraceId", "OresRoutineId"],
+      "summary": "trace_id and routine_id renamed to ores_trace_id and ores_routine_id (static call-site identity); trace_id and span_id reintroduced as optional W3C trace context; rpc_layer added as a required classification field.",
+      "not_machine_checkable": "Condition 2 of the policy — that no consumer has shipped against the old shape — cannot be established from this repository. It was checked by hand against api-docs, ores-stack and the three API servers when the correction was made, and is recorded in README.md."
+    }
+  ]
+}

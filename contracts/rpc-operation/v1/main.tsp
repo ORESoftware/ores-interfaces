@@ -1,3 +1,6 @@
+import "@typespec/json-schema";
+using TypeSpec.JsonSchema;
+
 namespace Ores.Rpc.Operation.V1;
 
 enum HttpMethod {
@@ -187,16 +190,25 @@ model RpcErrorLogEvent {
 
   /// W3C trace-context trace-id for the invocation: 32 lowercase hex digits.
   /// Optional, because an error can be logged outside any propagated trace.
+  /// The all-zero id is invalid per the W3C spec. Both peers exclude it; this
+  /// one used to constrain only the shape, so the two accepted different
+  /// documents.
   @pattern("^[0-9a-f]{32}$")
+  @extension("not", #{ `const`: "00000000000000000000000000000000" })
   trace_id?: string;
 
   /// W3C trace-context span-id for the invocation: 16 lowercase hex digits.
   @pattern("^[0-9a-f]{16}$")
+  @extension("not", #{ `const`: "0000000000000000" })
   span_id?: string;
 
-  /// Which seam emitted this event. One error legitimately produces more than
-  /// one log line as it crosses seams, so a deduplicator needs this to tell a
-  /// genuine duplicate from a double-log bug.
+  /// Which seam emitted this event: a classification, not a correlation key.
+  /// One error legitimately produces more than one log line as it crosses
+  /// seams, and this says which of those a line is. It does NOT say that two
+  /// lines describe the same failure. That takes the W3C trace_id and span_id;
+  /// where they are absent, two independent failures at one call site and one
+  /// layer are indistinguishable in this contract, and a consumer must not
+  /// deduplicate on (ores_trace_id, rpc_layer) alone.
   rpc_layer: RpcLayer;
 
   /**

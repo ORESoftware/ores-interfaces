@@ -1,0 +1,74 @@
+{
+  "$comment": "For every instances/RpcErrorLogEvent/invalid/<name>.json there is a valid/repaired-<name>.json that differs from it in exactly the one top-level field named here. TJSV proves both verdicts on both authorities; test/rpc-error-log-repairs.test.mjs proves the difference is confined to the field. Together: each negative is rejected for the rule it is named after and for nothing else.",
+  "model": "RpcErrorLogEvent",
+  "repairs": {
+    "error-code-not-stable-identifier": {
+      "field": "error_code",
+      "repair": "replaced"
+    },
+    "headers-field": {
+      "field": "headers",
+      "repair": "removed"
+    },
+    "legacy-dd-ores-trace-prefix": {
+      "field": "ores_trace_id",
+      "repair": "replaced"
+    },
+    "meta-field": {
+      "field": "meta",
+      "repair": "removed"
+    },
+    "missing-re-raised": {
+      "field": "re_raised",
+      "repair": "replaced"
+    },
+    "missing-rpc-layer": {
+      "field": "rpc_layer",
+      "repair": "replaced"
+    },
+    "non-string-ores-trace-id": {
+      "field": "ores_trace_id",
+      "repair": "replaced"
+    },
+    "ores-trace-id-suffix-too-short": {
+      "field": "ores_trace_id",
+      "repair": "replaced"
+    },
+    "payload-bearing-field": {
+      "field": "request_body",
+      "repair": "removed"
+    },
+    "payload-omitted-false": {
+      "field": "payload_omitted",
+      "repair": "replaced"
+    },
+    "routine-id-suffix-too-long": {
+      "field": "ores_routine_id",
+      "repair": "replaced"
+    },
+    "unknown-rpc-layer": {
+      "field": "rpc_layer",
+      "repair": "replaced"
+    },
+    "unknown-transport": {
+      "field": "transport",
+      "repair": "replaced"
+    },
+    "w3c-all-zero-span-id": {
+      "field": "span_id",
+      "repair": "replaced"
+    },
+    "w3c-all-zero-trace-id": {
+      "field": "trace_id",
+      "repair": "replaced"
+    },
+    "w3c-span-id-wrong-length": {
+      "field": "span_id",
+      "repair": "replaced"
+    },
+    "w3c-trace-id-not-lowercase-hex": {
+      "field": "trace_id",
+      "repair": "replaced"
+    }
+  }
+}

@@ -47,6 +47,43 @@ Every new or migrated contract family follows this order:
 4. **Run runtime conformance when implementations exist.** The fixture corpus belongs with the authored contract family. Isolated adapters return verdicts only. TJSV's runtime-conformance decision code binds those verdicts to the exact Contract IR, parity receipt, and corpus digest.
 5. **Promote generated outputs as evidence.** Generated Rust, Dart, TypeScript, SQL, SeaORM, Diesel, Protobuf/OpenAPI projections, receipts, and conformance reports are reproducible evidence. They are never editable authority.
 
+## Correcting an admitted family
+
+Promotion says how a family is admitted. This says what may happen to it
+afterwards, which is a separate question and was previously unwritten.
+
+An admitted `contracts/<family>/<version>/` may be **corrected in place** only
+while every one of these holds:
+
+1. **Nothing outside this repository depends on it.** The package is
+   `private: true` and unpublished, or the version has never been released.
+2. **No consumer has shipped against it.** Every known consumer is still
+   mid-integration. A consumer that has merged and deployed is a consumer that
+   can be broken silently.
+3. **The correction is semantic.** It removes an ambiguity, a wrong meaning, or
+   a claim the contract cannot keep. Adding fields for convenience is not a
+   correction; that is a new version.
+
+If any of those fails, add `contracts/<family>/<next-version>/` instead and
+leave the admitted version untouched. Provide a deterministic adapter from the
+old shape to the new one so persisted data stays readable, and do not carry the
+old name forward as an alias inside the new version.
+
+That last clause is the point of the rule rather than a detail. Keeping a
+corrected name as a compatibility alias puts both meanings in one document, so
+every consumer needs precedence rules and the ambiguity the correction was meant
+to remove survives it. A version boundary separates the two meanings; an alias
+merges them.
+
+Record every in-place correction in the family's `README.md`, stating what the
+old shape meant and why it could not stand. A correction that leaves no trace is
+indistinguishable from the contract having always said the new thing.
+
+Note that `additionalProperties: false` makes most "additive" changes breaking
+anyway: a strict consumer rejects unknown properties, so adding a field already
+requires every consumer to update. Weigh a correction against that, not against
+an imagined zero-cost additive path.
+
 ## Conformance ownership
 
 Generic conformance protocol code belongs in TJSV. Repository- or language-specific adapters belong with the implementation they execute. Reviewed fixture corpora and expected accept/reject classifications belong with the contract owner.

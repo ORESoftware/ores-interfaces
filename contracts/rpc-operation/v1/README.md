@@ -108,3 +108,30 @@ handler failure is re-raised through dispatch and observed again at the
 transport. Without a layer discriminator a deduplicator cannot tell that from a
 double-log bug, so it either hides real duplication or silently drops
 legitimate events.
+
+## Corrections to this version
+
+Per [Correcting an admitted family](../../../docs/contract-stack.md#correcting-an-admitted-family).
+
+### `trace_id` → `ores_trace_id` (static call-site identity)
+
+**What the old shape meant.** `RpcErrorLogEvent.trace_id` was required and
+`$ref`ed `OresTraceId` — the `ores-trace-<21-char nanoid>` literal the generator
+emits inline at a source location. It identified *a line of code*.
+
+**Why it could not stand.** `trace_id` in the sibling `rpc-client-plan/v1` means
+the W3C trace-context trace-id for *one invocation*. Two different concepts held
+the same field name in one registry. A log join across both contracts groups by
+`trace_id` and silently conflates a source location with a request, so the
+resulting "trace" collects every occurrence of one call site. Nothing errors;
+the telemetry is simply wrong, and wrong in a way that looks plausible.
+
+**Correction.** Renamed by origin: `ores_trace_id` and `ores_routine_id` are
+static, `trace_id` and `span_id` are dynamic W3C context. `rpc_layer` was added
+as a required discriminator. No alias was kept — see the policy for why an alias
+would have preserved the ambiguity rather than easing it.
+
+**Admissibility.** Corrected in place rather than versioned, because at the time
+all three conditions held: the package is `private: true` and unpublished, the
+family was five hours old with all three consumers still mid-integration, and
+the change is semantic rather than additive.

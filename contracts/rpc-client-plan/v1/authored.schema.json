@@ -32,12 +32,17 @@
       ]
     },
     "RpcHeaders": {
-      "description": "Normalized request headers. Redaction is applied at the plan boundary, not per option: any header whose name matches the client redaction lists is replaced with the redaction placeholder before serialization, whatever wrote it. A credential value therefore cannot appear here even though the shape admits arbitrary header names.",
+      "description": "Normalized request headers. Redaction is applied at the plan boundary, not per option: any header whose normalized name is an exact credential-bearing header or contains a shared sensitive-name pattern must carry the redaction placeholder, whatever wrote it. The real value reaches only the wire.",
       "type": "object",
       "propertyNames": {
         "type": "string",
         "maxLength": 128,
         "pattern": "^[!#$%&'*+.^_`|~0-9a-z-]+$"
+      },
+      "patternProperties": {
+        "^(?:(?:authentication|authorization|cookie|proxy[-_]authorization|set[-_]cookie|www[-_]authenticate|x[-_]amz[-_]security[-_]token|x[-_]auth[-_]token|x[-_]csrf[-_]token|x[-_]session[-_]token|x[-_]xsrf[-_]token)|.*(?:access[-_]token|api[-_]?key|auth[-_]token|credential|id[-_]token|password|private[-_]key|refresh[-_]token|secret|session[-_]id|signature).*)$": {
+          "const": "[redacted]"
+        }
       },
       "properties": {},
       "unevaluatedProperties": {}
@@ -164,7 +169,7 @@
           "not": {
             "const": "0000000000000000"
           },
-          "description": "W3C trace-context parent span-id: 16 lowercase hex digits, not all zero."
+          "description": "W3C trace-context parent span-id: 16 lowercase hex digits, not all zero. When present, trace_id is required."
         },
         "debug": {
           "type": "boolean"
@@ -275,6 +280,11 @@
           "minimum": 1,
           "maximum": 60000
         }
+      },
+      "dependentRequired": {
+        "span_id": [
+          "trace_id"
+        ]
       },
       "allOf": [
         {

@@ -75,7 +75,35 @@ jobs:
           zed task run test
       - name: Require unchanged source and dependency lockfiles
         run: |
-          git diff --exit-code HEAD
+          set -euo pipefail
+          git diff --exit-code HEAD -- . \
+            ':(exclude)generated/public/interface-release.json' \
+            ':(exclude)generated/public/provenance.json'
+          node scripts/check-generated-public-stability.mjs
+
+          # Negative control: the exception above is only for documented
+          # run-scoped identity. A stable generated field must still veto the
+          # build. The public receipts are deliberately read-only after build,
+          # so make only this test target writable, then restore bytes and mode.
+          chmod u+w generated/public/provenance.json
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const path = 'generated/public/provenance.json';
+          const value = JSON.parse(readFileSync(path, 'utf8'));
+          value.policy.repository = 'tampered/stable-field';
+          writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);
+          NODE
+          if node scripts/check-generated-public-stability.mjs; then
+            echo "::error::stable generated-public tamper escaped the clean-tree guard"
+            exit 1
+          fi
+          git restore --source=HEAD -- \
+            generated/public/interface-release.json \
+            generated/public/provenance.json
+          chmod a-w \
+            generated/public/interface-release.json \
+            generated/public/provenance.json
+
           git -C .deps/compat diff --exit-code HEAD
           git -C .deps/tjsv diff --exit-code HEAD
       - name: Retain the tested source package and advisory inventory

@@ -20,6 +20,24 @@ visibility policy, not proof of a compiled native SDK. Require real compiler
 admission, exact pins, complete declarations, recorded positive/negative cases,
 package-content checks and external consumption before merging.
 
+## Literal route and page paths
+
+Routing repositories may contain literal filesystem names with characters such
+as `[`, `]`, `(`, `)`, `{`, and `}`. Treat those characters as ordinary path
+bytes unless the routing grammar explicitly assigns them meaning. Never let a
+shell expand, glob, brace-expand, or reinterpret such a path.
+
+- Prefer APIs that accept a path argument directly instead of constructing a
+  shell command string.
+- When a shell is unavoidable, quote the complete path as one argument, for
+  example `git add -- 'src/pages/users/[id]/page.rs'`.
+- Use `--` before pathspecs for Git commands when a path could be mistaken for
+  an option.
+- Do not rename or normalize bracket/brace/parenthesis segments merely to make a
+  tool invocation easier. Preserve the authored wire/path identity.
+- In generated manifests and diagnostics, serialize the literal repository path
+  and a separately derived canonical URL/RPC path; never reuse one as the other.
+
 Run `npm test`, `npm run test:integration`, `npm run build`, and the CI package
 consumer test with both checkouts provisioned. Missing tools or checkouts fail;
 never report skipped gates as green. Generated files are read-only; regenerate

@@ -75,7 +75,10 @@ jobs:
           zed task run test
       - name: Require unchanged source and dependency lockfiles
         run: |
-          git diff --exit-code HEAD
+          git diff --exit-code HEAD -- . \
+            ':(exclude)generated/public/interface-release.json' \
+            ':(exclude)generated/public/provenance.json'
+          node scripts/check-generated-public-stability.mjs
           git -C .deps/compat diff --exit-code HEAD
           git -C .deps/tjsv diff --exit-code HEAD
       - name: Retain the tested source package and advisory inventory

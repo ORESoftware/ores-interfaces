@@ -62,6 +62,10 @@
       "field": "trace_id",
       "repair": "replaced"
     },
+    "w3c-span-id-without-trace-id": {
+      "field": "trace_id",
+      "repair": "replaced"
+    },
     "w3c-span-id-wrong-length": {
       "field": "span_id",
       "repair": "replaced"

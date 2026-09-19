@@ -78,7 +78,7 @@ jobs:
           if (report.coverage?.differentialInstanceValidation !== true) throw new Error('instance differential validation did not run');
           const summary = report.differential?.summary ?? {};
           if ((summary.comparedDeclarations ?? 0) < 6) throw new Error(`expected at least 6 compared declarations, got ${summary.comparedDeclarations}`);
-          if ((summary.corpusInstances ?? 0) < 29) throw new Error(`expected the full instance corpus, got ${summary.corpusInstances}`);
+          if ((summary.corpusInstances ?? 0) < 38) throw new Error(`expected the hardened instance corpus, got ${summary.corpusInstances}`);
           if ((summary.divergences ?? -1) !== 0) throw new Error('authorities diverged on corpus instances');
           if ((summary.refusals ?? -1) !== 0) throw new Error('differential validator refused evidence');
           if ((report.counts?.differentialFindings ?? -1) !== 0) throw new Error('differential findings remain');
@@ -102,14 +102,38 @@ jobs:
           if (event.properties?.payload_omitted?.const !== true) throw new Error('payload_omitted must be const true');
           for (const required of ['schema_version', 'operation_key', 'transport', 'outcome', 'error_kind', 'error_code', 'trace_id', 're_raised', 'payload_omitted'])
             if (!(event.required ?? []).includes(required)) throw new Error(`RpcErrorLogEvent must require ${required}`);
-          const ids = {
-            OresTraceId: '^ores-trace-[A-Za-z0-9_-]{21}$',
-            OresRoutineId: '^ores-routine-[A-Za-z0-9_-]{21}$',
-          };
+          NODE
+      - name: Prove id compatibility and canonical generator subset
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const root = process.env.CONTRACT_ROOT;
+          const schema = JSON.parse(readFileSync(`${root}/authored.schema.json`, 'utf8'));
           const tsp = readFileSync(`${root}/main.tsp`, 'utf8');
-          for (const [name, pattern] of Object.entries(ids)) {
+          const patterns = {
+            OresTraceId: '^ores-trace-[A-Za-z0-9_-]{12,64}$',
+            OresRoutineId: '^ores-routine-[A-Za-z0-9_-]{12,64}$',
+          };
+          for (const [name, pattern] of Object.entries(patterns)) {
             if (schema.$defs?.[name]?.pattern !== pattern) throw new Error(`${name} authored pattern drifted from ${pattern}`);
             if (!tsp.includes(`@pattern("${pattern}")`)) throw new Error(`${name} TypeSpec pattern drifted from ${pattern}`);
+          }
+          const cases = [
+            [11, false], [12, true], [20, true], [21, true],
+            [22, true], [41, true], [64, true], [65, false],
+          ];
+          for (const [width, expected] of cases) {
+            for (const [kind, pattern] of [['trace', patterns.OresTraceId], ['routine', patterns.OresRoutineId]]) {
+              const value = `ores-${kind}-${'A'.repeat(width)}`;
+              const actual = new RegExp(pattern).test(value);
+              if (actual !== expected) throw new Error(`${kind} width ${width}: expected ${expected}, got ${actual}`);
+            }
+          }
+          for (const kind of ['trace', 'routine']) {
+            const canonical = `ores-${kind}-${'A'.repeat(21)}`;
+            const pattern = kind === 'trace' ? patterns.OresTraceId : patterns.OresRoutineId;
+            if (!new RegExp(pattern).test(canonical)) throw new Error(`${kind} canonical 21-char generator output is not admitted`);
           }
           NODE
       - name: Require an unmutated authored checkout

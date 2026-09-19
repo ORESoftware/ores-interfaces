@@ -73,17 +73,17 @@ model RpcHeaders is Record<unknown>;
 /// Path-template fields, by placeholder name.
 model RpcPathFields is Record<unknown>;
 
-/// Request query fields, redacted at the plan boundary exactly as headers are.
+/// Request query fields, redacted at the plan boundary exactly as the client.
 ///
-/// A field whose name matches the client redaction lists carries the
-/// placeholder, whatever wrote it. The pattern pins the canonical lowercase
-/// spellings; clients match case-insensitively, which a JSON Schema pattern
-/// cannot express, so other casings are the client conformance suite's to
-/// prove, not this contract's.
+/// The client normalizes `_` to `-`, lowercases names and then redacts either
+/// exact sensitive names or any name containing a shared sensitive-name
+/// pattern. This peer therefore constrains canonical lowercase spellings such
+/// as `access_token`, `x_refresh_token`, `tenant-api-key`, `client_secret` and
+/// `signature_version`. Casing variants remain a client-conformance concern.
 @extension(
   "patternProperties",
   #{
-    `^(access[-_]token|api[-_]key|apikey|auth|password|secret|sig|signature|token)$`: #{ `const`: "[redacted]" },
+    `^(?:.*(?:access[-_]token|api[-_]?key|auth[-_]token|credential|id[-_]token|password|private[-_]key|refresh[-_]token|secret|session[-_]id|signature).*|auth|sig|token)$`: #{ `const`: "[redacted]" },
   }
 )
 model RpcQuery is Record<unknown>;
@@ -187,13 +187,9 @@ model RpcRequestPlan {
   headers?: RpcHeaders;
   path?: RpcPathFields;
 
-  /// Redacted at the plan boundary exactly as headers are: a field whose name
-  /// matches the client redaction lists (`access_token`, `api-key`, `sig`,
-  /// `token`, ...) carries the placeholder, whatever wrote it. The shape admits
-  /// arbitrary field names, so the rule is about VALUES and is enforced on the
-  /// canonical lowercase spellings of the shared redaction list. Clients match
-  /// case-insensitively; a JSON Schema pattern cannot, so other casings are the
-  /// client conformance suite's to prove, not this contract's.
+  /// Redacted at the plan boundary exactly as the client: canonical lowercase
+  /// exact names and sensitive-name substrings carry the placeholder. Clients
+  /// normalize `_` to `-` and match case-insensitively before serializing.
   query?: RpcQuery;
   body?: unknown;
 

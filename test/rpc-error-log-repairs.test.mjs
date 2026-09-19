@@ -81,3 +81,12 @@ test('the all-zero W3C ids are excluded by both peers, identically', () => {
     );
   }
 });
+
+test('a W3C span id cannot be emitted without its trace id', () => {
+  const event = schema.$defs.RpcErrorLogEvent;
+  assert.deepEqual(event.dependentRequired, { span_id: ['trace_id'] });
+  assert.ok(
+    typespec.includes('@extension("dependentRequired", #{ span_id: #["trace_id"] })'),
+    'TypeSpec must carry the same span_id -> trace_id dependency',
+  );
+});

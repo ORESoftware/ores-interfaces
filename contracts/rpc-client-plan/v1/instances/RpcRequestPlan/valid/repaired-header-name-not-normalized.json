@@ -1,0 +1,10 @@
+{
+  "plan_version": "1.0.0",
+  "kind": "unary",
+  "key": "demo.users.find_user",
+  "rpc_path": "/v1/rpc",
+  "serial_strategy": "json",
+  "headers": {
+    "x-trace": "1"
+  }
+}

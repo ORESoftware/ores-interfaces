@@ -1,0 +1,12 @@
+{
+  "key": "demo.users.find_user",
+  "kind": "unary",
+  "plan_version": "1.0.0",
+  "retry_backoff": {
+    "base_millis": 100,
+    "factor": 2
+  },
+  "rpc_path": "/v1/rpc",
+  "serial_strategy": "json",
+  "retry_count": 3
+}

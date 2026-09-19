@@ -1,0 +1,102 @@
+{
+  "$comment": "For every invalid/<name>.json there is a valid/repaired-<name>.json that differs from it in exactly the one top-level field named here. TJSV proves both verdicts on both authorities; test/rpc-client-plan.test.mjs proves the difference is confined to the field. Together: each negative is rejected for the rule it is named after and for nothing else.",
+  "model": "RpcRequestPlan",
+  "repairs": {
+    "all-zero-span-id": {
+      "field": "span_id",
+      "repair": "replaced"
+    },
+    "all-zero-trace-id": {
+      "field": "trace_id",
+      "repair": "replaced"
+    },
+    "backoff-without-a-retry-budget": {
+      "field": "retry_count",
+      "repair": "replaced"
+    },
+    "deadline-beyond-js-safe-integer": {
+      "field": "deadline_unix_millis",
+      "repair": "replaced"
+    },
+    "header-name-not-normalized": {
+      "field": "headers",
+      "repair": "replaced"
+    },
+    "legacy-non-dotted-operation-key": {
+      "field": "key",
+      "repair": "replaced"
+    },
+    "missing-serial-strategy": {
+      "field": "serial_strategy",
+      "repair": "replaced"
+    },
+    "proxy-url-bracketed-placeholder": {
+      "field": "proxy_url",
+      "repair": "replaced"
+    },
+    "proxy-url-carrying-userinfo": {
+      "field": "proxy_url",
+      "repair": "replaced"
+    },
+    "query-api-key-in-the-clear": {
+      "field": "query",
+      "repair": "replaced"
+    },
+    "query-credential-in-the-clear": {
+      "field": "query",
+      "repair": "replaced"
+    },
+    "query-sensitive-substring-in-the-clear": {
+      "field": "query",
+      "repair": "replaced"
+    },
+    "rpc-path-not-absolute": {
+      "field": "rpc_path",
+      "repair": "replaced"
+    },
+    "span-id-wrong-length": {
+      "field": "span_id",
+      "repair": "replaced"
+    },
+    "stream-only-option-on-a-unary-plan": {
+      "field": "kind",
+      "repair": "replaced"
+    },
+    "throttle-and-debounce-together": {
+      "field": "debounce_millis",
+      "repair": "removed"
+    },
+    "timeout-above-documented-maximum": {
+      "field": "timeout_millis",
+      "repair": "replaced"
+    },
+    "trace-id-not-lowercase-hex": {
+      "field": "trace_id",
+      "repair": "replaced"
+    },
+    "trace-id-wrong-length": {
+      "field": "trace_id",
+      "repair": "replaced"
+    },
+    "two-stream-rate-shapers": {
+      "field": "debounce_each_millis",
+      "repair": "removed"
+    },
+    "unary-only-option-on-a-stream-plan": {
+      "field": "kind",
+      "repair": "replaced"
+    },
+    "unknown-address-family": {
+      "field": "ip_version",
+      "repair": "replaced"
+    },
+    "unknown-client-surface": {
+      "field": "kind",
+      "repair": "replaced"
+    },
+    "unknown-plan-field": {
+      "field": "not_a_documented_option",
+      "repair": "removed"
+    }
+  }
+}

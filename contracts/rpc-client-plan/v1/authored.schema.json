@@ -56,10 +56,10 @@
       "unevaluatedProperties": {}
     },
     "RpcQuery": {
-      "description": "Request query fields. Redacted at the plan boundary exactly as headers are: a field whose name matches the client redaction lists carries the placeholder, whatever wrote it. The pattern pins the canonical lowercase spellings; clients match case-insensitively, which a JSON Schema pattern cannot express.",
+      "description": "Request query fields. Redacted at the plan boundary exactly as the client does it: canonical lowercase credential names and any name containing a shared sensitive-name pattern (for example refresh_token, tenant-api-key, client_secret or signature_version) must carry the placeholder. Clients normalize `_` to `-` and match case-insensitively; this peer accepts both `_` and `-` spellings for the canonical lowercase forms, while casing variants remain a client-conformance responsibility.",
       "type": "object",
       "patternProperties": {
-        "^(access[-_]token|api[-_]key|apikey|auth|password|secret|sig|signature|token)$": {
+        "^(?:.*(?:access[-_]token|api[-_]?key|auth[-_]token|credential|id[-_]token|password|private[-_]key|refresh[-_]token|secret|session[-_]id|signature).*|auth|sig|token)$": {
           "const": "[redacted]"
         }
       },

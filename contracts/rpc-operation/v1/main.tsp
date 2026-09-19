@@ -163,6 +163,10 @@ enum RpcLayer {
   client,
 }
 
+/// A W3C span-id is only meaningful inside a trace. A producer may omit both
+/// dynamic identifiers when no propagated context exists, but it may not emit a
+/// span_id by itself and leave consumers to guess which trace it belongs to.
+@extension("dependentRequired", #{ span_id: #["trace_id"] })
 model RpcErrorLogEvent {
   schema_version: 1;
 
@@ -198,6 +202,7 @@ model RpcErrorLogEvent {
   trace_id?: string;
 
   /// W3C trace-context span-id for the invocation: 16 lowercase hex digits.
+  /// When present, trace_id is required by the model-level dependency above.
   @pattern("^[0-9a-f]{16}$")
   @extension("not", #{ `const`: "0000000000000000" })
   span_id?: string;

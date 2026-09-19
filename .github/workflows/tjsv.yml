@@ -83,8 +83,9 @@ jobs:
 
           # Negative control: the exception above is only for documented
           # run-scoped identity. A stable generated field must still veto the
-          # build. Restore the generated receipts afterward so the remaining
-          # dependency clean-tree checks observe the tested branch normally.
+          # build. The public receipts are deliberately read-only after build,
+          # so make only this test target writable, then restore bytes and mode.
+          chmod u+w generated/public/provenance.json
           node --input-type=module <<'NODE'
           import { readFileSync, writeFileSync } from 'node:fs';
           const path = 'generated/public/provenance.json';
@@ -97,6 +98,9 @@ jobs:
             exit 1
           fi
           git restore --source=HEAD -- \
+            generated/public/interface-release.json \
+            generated/public/provenance.json
+          chmod a-w \
             generated/public/interface-release.json \
             generated/public/provenance.json
 

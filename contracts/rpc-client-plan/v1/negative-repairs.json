@@ -18,7 +18,15 @@
       "field": "deadline_unix_millis",
       "repair": "replaced"
     },
+    "header-credential-in-the-clear": {
+      "field": "headers",
+      "repair": "replaced"
+    },
     "header-name-not-normalized": {
+      "field": "headers",
+      "repair": "replaced"
+    },
+    "header-sensitive-substring-in-the-clear": {
       "field": "headers",
       "repair": "replaced"
     },
@@ -52,6 +60,10 @@
     },
     "rpc-path-not-absolute": {
       "field": "rpc_path",
+      "repair": "replaced"
+    },
+    "span-id-without-trace-id": {
+      "field": "trace_id",
       "repair": "replaced"
     },
     "span-id-wrong-length": {

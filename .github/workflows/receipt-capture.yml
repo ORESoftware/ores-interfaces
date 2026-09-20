@@ -1,5 +1,8 @@
 name: Receipt capture
 on:
+  push:
+    branches:
+      - fix/deterministic-public-receipts-pin-chain
   pull_request:
     paths:
       - shared-interfaces.json

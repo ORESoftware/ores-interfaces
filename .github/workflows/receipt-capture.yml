@@ -1,0 +1,56 @@
+name: Receipt capture
+on:
+  pull_request:
+    paths:
+      - shared-interfaces.json
+      - scripts/**
+      - generated/public/**
+      - .github/workflows/receipt-capture.yml
+permissions:
+  contents: read
+concurrency:
+  group: receipt-capture-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Resolve immutable dependency policy
+        id: pins
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync } from 'node:fs';
+          import { readPolicy } from './scripts/policy.mjs';
+          const p = await readPolicy(process.cwd());
+          appendFileSync(process.env.GITHUB_OUTPUT, `source=${p.source.commit}\nvalidator=${p.validator.commit}\n`);
+          NODE
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ores-otel/ores-interfaces
+          ref: ${{ steps.pins.outputs.source }}
+          path: .deps/compat
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ORESoftware/typespec-json-schema-validator
+          ref: ${{ steps.pins.outputs.validator }}
+          path: .deps/tjsv
+          persist-credentials: false
+      - name: Install validator toolchain
+        run: npm ci --prefix .deps/tjsv
+      - name: Generate reviewed receipts
+        run: npm run build
+      - name: Capture exact generated receipts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: deterministic-receipts-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            generated/public/interface-release.json
+            generated/public/provenance.json
+          if-no-files-found: error
+          retention-days: 1

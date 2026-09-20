@@ -27,7 +27,7 @@
   ],
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node --test test/policy.test.mjs test/output.test.mjs test/checkout.test.mjs test/rpc-client-plan.test.mjs test/rpc-client-plan-hardening.test.mjs",
+    "test": "node --test test/policy.test.mjs test/output.test.mjs test/checkout.test.mjs test/rpc-client-plan.test.mjs test/rpc-client-plan-hardening.test.mjs test/rpc-error-log-repairs.test.mjs test/test-manifest.test.mjs test/contract-corrections.test.mjs",
     "test:integration": "node --test test/integration.test.mjs && node --test test/checkout-integration.test.mjs",
     "check": "npm test && npm run test:integration",
     "prepack": "npm run build"

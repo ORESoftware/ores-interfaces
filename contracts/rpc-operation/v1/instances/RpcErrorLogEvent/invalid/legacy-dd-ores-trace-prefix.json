@@ -5,7 +5,8 @@
   "outcome": "error",
   "error_kind": "internal",
   "error_code": "rpc.dispatch_failed",
-  "trace_id": 42,
   "re_raised": true,
-  "payload_omitted": true
+  "payload_omitted": true,
+  "ores_trace_id": "dd-trace-uXOkCvZNc9WidUlNR7Pvn",
+  "rpc_layer": "dispatch"
 }

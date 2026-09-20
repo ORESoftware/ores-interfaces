@@ -4,9 +4,10 @@
   "transport": "rpc",
   "outcome": "error",
   "error_kind": "internal",
-  "error_code": "PoolTimedOut: connection to 10.0.4.19:5432 failed",
+  "error_code": "rpc.dispatch_failed",
   "re_raised": true,
   "payload_omitted": true,
   "ores_trace_id": "ores-trace-uXOkCvZNc9WidUlNR7Pvn",
-  "rpc_layer": "dispatch"
+  "rpc_layer": "dispatch",
+  "span_id": "00f067aa0ba902b7"
 }

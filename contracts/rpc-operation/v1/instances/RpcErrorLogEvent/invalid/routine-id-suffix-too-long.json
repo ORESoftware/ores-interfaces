@@ -5,8 +5,9 @@
   "outcome": "error",
   "error_kind": "internal",
   "error_code": "rpc.dispatch_failed",
-  "trace_id": "ores-trace-uXOkCvZNc9WidUlNR7Pvn",
-  "routine_id": "ores-routine-JJkmmS1t9iAh6taE0Hj1II",
   "re_raised": true,
-  "payload_omitted": true
+  "payload_omitted": true,
+  "ores_trace_id": "ores-trace-uXOkCvZNc9WidUlNR7Pvn",
+  "ores_routine_id": "ores-routine-JJkmmS1t9iAh6taE0Hj1II",
+  "rpc_layer": "dispatch"
 }

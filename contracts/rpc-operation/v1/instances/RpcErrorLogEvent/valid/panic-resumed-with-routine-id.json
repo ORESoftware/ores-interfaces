@@ -5,8 +5,9 @@
   "outcome": "panic",
   "error_kind": "panic",
   "error_code": "rpc.handler_panicked",
-  "trace_id": "ores-trace-C5SHdQcPeGTaKK2B7bDMe",
-  "routine_id": "ores-routine-JJkmmS1t9iAh6taE0Hj1I",
   "re_raised": true,
-  "payload_omitted": true
+  "payload_omitted": true,
+  "ores_trace_id": "ores-trace-C5SHdQcPeGTaKK2B7bDMe",
+  "ores_routine_id": "ores-routine-JJkmmS1t9iAh6taE0Hj1I",
+  "rpc_layer": "dispatch"
 }

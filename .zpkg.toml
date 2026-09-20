@@ -16,13 +16,23 @@ dir = "zed_modules"
 dir = "."
 adapter = "none"
 
+[targets.contracts]
+dir = "contracts"
+name = "ores-interface-authorities"
+adapter = "none"
+
+[targets.conformance]
+dir = "conformance"
+name = "ores-interface-conformance"
+adapter = "none"
+
 [targets.public-contracts]
 dir = "generated/public"
 name = "ores-public-contracts"
 adapter = "none"
 
 [scripts]
-test = "npm run check"
+test = "npm run check && sh conformance/check.sh"
 
 [publish]
 include_readme = true

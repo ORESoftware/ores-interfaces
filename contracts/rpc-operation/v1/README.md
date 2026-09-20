@@ -75,3 +75,92 @@ npx --yes \
 CI runs the same command in `.github/workflows/rpc-operation-tjsv.yml`. Any
 structural, declaration, differential-validation or corpus disagreement fails
 closed.
+
+## Identity fields: static versus dynamic
+
+`RpcErrorLogEvent` carries two kinds of identity, and they are not
+interchangeable:
+
+| Field | Kind | Shape | Required |
+| --- | --- | --- | --- |
+| `ores_trace_id` | **static** call-site identity, emitted as an inline literal by the generator | `ores-trace-<21-char nanoid>` | yes |
+| `ores_routine_id` | **static** routine identity for the call site | `ores-routine-<21-char nanoid>` | no |
+| `trace_id` | **dynamic** W3C trace-context trace-id for the invocation | 32 lowercase hex | no |
+| `span_id` | **dynamic** W3C trace-context span-id for the invocation | 16 lowercase hex | no |
+
+The static pair answers *which line of code emitted this*. The dynamic pair
+answers *which invocation was it part of*. An earlier version of this contract
+called the static value simply `trace_id`, which collided with the W3C field of
+the same name in `rpc-client-plan/v1` — so a log join across the two contracts
+would silently conflate a source location with an invocation, and the resulting
+"trace" would group together every occurrence of one call site.
+
+The dynamic fields are optional because an error can be logged outside any
+propagated trace. The static one is required because the generator always knows
+it.
+
+## `rpc_layer`
+
+Required, one of `handler`, `dispatch`, `transport`, `client`.
+
+One error legitimately produces more than one log line as it crosses seams: a
+handler failure is re-raised through dispatch and observed again at the
+transport. `rpc_layer` says which of those a given line is.
+
+**It is a classification, not a correlation key.** It tells a reader that two
+lines were emitted at different seams; it does not tell them the two lines
+describe the *same* failure. That takes the W3C `trace_id` and `span_id`. Where
+those are absent — an error logged outside any propagated trace — two
+independent failures at one call site and one layer are indistinguishable in
+this contract, and a consumer must not deduplicate on
+`(ores_trace_id, rpc_layer)` alone. An earlier version of this section justified
+the field by what "a deduplicator needs", which promised more than one enum can
+deliver. If per-failure correlation without trace context turns out to be
+needed, the answer is a non-sensitive per-dispatch correlation id in a new
+version, not a wider reading of this field.
+
+## Corrections to this version
+
+Per [Correcting an admitted family](../../../docs/contract-stack.md#correcting-an-admitted-family).
+
+### `trace_id` → `ores_trace_id` (static call-site identity)
+
+**What the old shape meant.** `RpcErrorLogEvent.trace_id` was required and
+`$ref`ed `OresTraceId` — the `ores-trace-<21-char nanoid>` literal the generator
+emits inline at a source location. It identified *a line of code*.
+
+**Why it could not stand.** `trace_id` in the sibling `rpc-client-plan/v1` means
+the W3C trace-context trace-id for *one invocation*. Two different concepts held
+the same field name in one registry. A log join across both contracts groups by
+`trace_id` and silently conflates a source location with a request, so the
+resulting "trace" collects every occurrence of one call site. Nothing errors;
+the telemetry is simply wrong, and wrong in a way that looks plausible.
+
+**Correction.** Renamed by origin: `ores_trace_id` and `ores_routine_id` are
+static, `trace_id` and `span_id` are dynamic W3C context. `rpc_layer` was added
+as a required discriminator. No alias was kept — see the policy for why an alias
+would have preserved the ambiguity rather than easing it.
+
+**Admissibility.** Corrected in place rather than versioned, because at the time
+all three conditions held: the package is `private: true` and unpublished, the
+family was five hours old with all three consumers still mid-integration, and
+the change is semantic rather than additive.
+
+The first condition is no longer prose. `corrections.json` declares this
+correction, and `test/contract-corrections.test.mjs` fails unless the package is
+`private`, `contracts/` is outside its released file set, and none of the
+corrected declarations appears in anything the package ships. So the permission
+lapses by itself the day this family is released. The second condition — that
+no consumer had shipped — cannot be established from this repository;
+`corrections.json` says so rather than implying otherwise.
+
+### Negative fixtures repaired (same correction)
+
+Making `rpc_layer` required invalidated nine existing negatives for the wrong
+reason: they had been renamed but did not carry the new field, so each was
+rejected whether or not its named defect was present. `legacy-dd-ores-trace-prefix`
+carried three defects at once, and `header-and-meta-fields` two; the latter is
+now `headers-field` and `meta-field`. Every negative has a
+`valid/repaired-<name>.json` differing in the one field `negative-repairs.json`
+names, so "rejected for the rule in its filename" is checked rather than
+assumed.

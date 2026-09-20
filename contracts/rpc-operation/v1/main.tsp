@@ -1,3 +1,6 @@
+import "@typespec/json-schema";
+using TypeSpec.JsonSchema;
+
 namespace Ores.Rpc.Operation.V1;
 
 enum HttpMethod {
@@ -152,6 +155,18 @@ enum RpcErrorKind {
  * for `meta`, or for any user data, and the model is closed so a generator that
  * tries to add one fails admission instead of leaking.
  */
+/// The seam that emitted an RPC error-log event.
+enum RpcLayer {
+  handler,
+  dispatch,
+  transport,
+  client,
+}
+
+/// A W3C span-id is only meaningful inside a trace. A producer may omit both
+/// dynamic identifiers when no propagated context exists, but it may not emit a
+/// span_id by itself and leave consumers to guess which trace it belongs to.
+@extension("dependentRequired", #{ span_id: #["trace_id"] })
 model RpcErrorLogEvent {
   schema_version: 1;
 
@@ -170,8 +185,36 @@ model RpcErrorLogEvent {
   @pattern("^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$")
   error_code: string;
 
-  trace_id: OresTraceId;
-  routine_id?: OresRoutineId;
+  /// Static call-site identity emitted as an inline literal by the generator.
+  /// Distinct from trace_id, which identifies the invocation, not the site.
+  ores_trace_id: OresTraceId;
+
+  /// Static routine identity for the call site, when the generator assigns one.
+  ores_routine_id?: OresRoutineId;
+
+  /// W3C trace-context trace-id for the invocation: 32 lowercase hex digits.
+  /// Optional, because an error can be logged outside any propagated trace.
+  /// The all-zero id is invalid per the W3C spec. Both peers exclude it; this
+  /// one used to constrain only the shape, so the two accepted different
+  /// documents.
+  @pattern("^[0-9a-f]{32}$")
+  @extension("not", #{ `const`: "00000000000000000000000000000000" })
+  trace_id?: string;
+
+  /// W3C trace-context span-id for the invocation: 16 lowercase hex digits.
+  /// When present, trace_id is required by the model-level dependency above.
+  @pattern("^[0-9a-f]{16}$")
+  @extension("not", #{ `const`: "0000000000000000" })
+  span_id?: string;
+
+  /// Which seam emitted this event: a classification, not a correlation key.
+  /// One error legitimately produces more than one log line as it crosses
+  /// seams, and this says which of those a line is. It does NOT say that two
+  /// lines describe the same failure. That takes the W3C trace_id and span_id;
+  /// where they are absent, two independent failures at one call site and one
+  /// layer are indistinguishable in this contract, and a consumer must not
+  /// deduplicate on (ores_trace_id, rpc_layer) alone.
+  rpc_layer: RpcLayer;
 
   /**
    * Records that the trapped error was re-raised (returned, rethrown,

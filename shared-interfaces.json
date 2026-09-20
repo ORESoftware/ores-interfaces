@@ -1,8 +1,8 @@
 {
   "schema": "ores.shared-interfaces-source/v1",
   "repository": "ORESoftware/ores-interfaces",
-  "source": { "repository": "ores-otel/ores-interfaces", "commit": "7a5cabeb196baffbd5beee62897fdd9bd2e36a18" },
-  "validator": { "repository": "ORESoftware/typespec-json-schema-validator", "commit": "7cf36bbcbd9523caaf894ac9188bd29633b7ac9f" },
+  "source": { "repository": "ores-otel/ores-interfaces", "commit": "18840cb8e4bdff51ea394a4d6221f7ab2cee1061" },
+  "validator": { "repository": "ORESoftware/typespec-json-schema-validator", "commit": "03aa2c1e44c6745c1abca9c1399a942cc315a8d8" },
   "authorityModel": "independent-typespec-and-json-schema-peers",
   "authorityTransfer": false,
   "expectedDeclarations": ["Ores.Validation.GitHubActionsBuildLogEvent", "Ores.Validation.GitHubActionsLogStream", "Ores.Validation.PageQuery", "Ores.Validation.ProblemDetails", "Ores.Validation.PublicValidationContract", "Ores.Validation.RequestMeta"],

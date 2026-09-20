@@ -4,14 +4,14 @@
   "editableAuthority": false,
   "source": {
     "repository": "ores-otel/ores-interfaces",
-    "commit": "3d26d3c0f79277b040e4b0665e6d6e6808f695de"
+    "commit": "18840cb8e4bdff51ea394a4d6221f7ab2cee1061"
   },
   "validator": {
     "repository": "ORESoftware/typespec-json-schema-validator",
-    "commit": "1614779275115258db73b92c938313e8ae437936"
+    "commit": "03aa2c1e44c6745c1abca9c1399a942cc315a8d8"
   },
   "authorityModel": "independent-typespec-and-json-schema-peers",
-  "admissionRunId": "c04c0367f5f17e6db9511a8f79bea42e8627d33b590baf4bbe01d685041bf819",
+  "admissionRunId": "b9c24b27e37e27e1e0b9b0b4ae3283cd0583347215234a49e8b6b986dcd4fe7e",
   "declarations": [
     "Ores.Validation.GitHubActionsBuildLogEvent",
     "Ores.Validation.GitHubActionsLogStream",
@@ -28,11 +28,11 @@
       "sha256": "391354e9e6144a556747a7db4cf87bf1b01f68a86761b561452eb8af918dfdc9"
     },
     "provenance.json": {
-      "sha256": "fae986eb35780ec392ae860aa163985d664c0e2fd2b318ea35a0c21d57028668"
+      "sha256": "34976f29fdcd741a1f4368947e2c3c58353193a08dd0a177f24f6403f5dc6baf"
     },
     "schema.json": {
       "sha256": "da6d98a2d6c538ee18132c6035cab46dd1bb45e333ec4c25f22db47b9043a834"
     }
   },
-  "releaseId": "40572411ef6c9d500f5c79b9cfe4a07ecbe9cf6fb03f8ececff8f36968c997c0"
+  "releaseId": "7b77a794151af894502af486fe023affe6162d9532486d3ff140fdc73a5a9293"
 }

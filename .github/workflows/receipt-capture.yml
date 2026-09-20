@@ -16,7 +16,11 @@ concurrency:
   cancel-in-progress: true
 jobs:
   capture:
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -48,12 +52,28 @@ jobs:
         run: npm ci --prefix .deps/tjsv
       - name: Generate reviewed receipts
         run: npm run build
+      - name: Print receipt identity
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          for (const path of ['generated/public/provenance.json', 'generated/public/interface-release.json']) {
+            const value = JSON.parse(readFileSync(path, 'utf8'));
+            console.log(JSON.stringify({
+              path,
+              runId: value?.admission?.runId ?? value?.runId ?? null,
+              packageId: value?.packageId ?? null,
+              releaseId: value?.releaseId ?? null,
+              irId: value?.admission?.irId ?? value?.irId ?? null,
+            }));
+          }
+          NODE
       - name: Capture exact generated receipts
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: deterministic-receipts-${{ github.event.pull_request.head.sha || github.sha }}
+          name: deterministic-receipts-${{ matrix.os }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             generated/public/interface-release.json
             generated/public/provenance.json
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 3

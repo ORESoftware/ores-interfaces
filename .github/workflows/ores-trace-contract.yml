@@ -1,11 +1,8 @@
 # Static ORES trace-marker contract.
 #
-# Enforces the compatibility shape `^ores-(trace|routine)-[A-Za-z0-9_-]{12,64}$`
-# across implementation call sites. New ORES-generated identifiers still use
-# the canonical 21-character nanoid width; the checker self-tests that the
-# canonical generator shape is a strict subset of the compatibility contract.
-# This keeps CI aligned with the public wire/runtime contract instead of
-# silently turning a generator convention into a breaking admission rule.
+# Compatibility/admission is `^ores-(trace|routine)-[A-Za-z0-9_-]{12,64}$`.
+# Current ORES generators mint 21-character nanoid suffixes; that generator
+# convention remains a tested subset, not a narrowing of the public contract.
 name: ORES trace marker contract
 
 on:
@@ -19,18 +16,44 @@ permissions:
 
 jobs:
   ores-trace-contract:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Check out exact candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          show-progress: false
+          fetch-depth: 1
 
-      - name: Build the contract checker
-        run: rustc -O -o "$RUNNER_TEMP/ores-trace-contract" .github/ores-trace-contract.rs
+      - name: Verify exact candidate revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
 
-      - name: Self-test the contract checker
+      - name: Build the contract checker warning-clean
+        run: rustc --edition=2021 -D warnings -O -o "$RUNNER_TEMP/ores-trace-contract" .github/ores-trace-contract.rs
+
+      - name: Self-test the contract checker warning-clean
         run: |
-          rustc --test -o "$RUNNER_TEMP/ores-trace-contract-test" .github/ores-trace-contract.rs
+          rustc --edition=2021 -D warnings --test -o "$RUNNER_TEMP/ores-trace-contract-test" .github/ores-trace-contract.rs
           "$RUNNER_TEMP/ores-trace-contract-test"
 
-      - name: Verify static ORES trace markers
+      - name: Prove traversal and vacuous scans fail closed
         run: |
-          "$RUNNER_TEMP/ores-trace-contract" .
+          set -euo pipefail
+          missing="$RUNNER_TEMP/ores-trace-missing"
+          empty="$RUNNER_TEMP/ores-trace-empty"
+          mkdir -p "$empty"
+          if "$RUNNER_TEMP/ores-trace-contract" "$missing"; then
+            echo "checker accepted a missing root" >&2
+            exit 1
+          fi
+          if "$RUNNER_TEMP/ores-trace-contract" "$empty"; then
+            echo "checker accepted a vacuous source tree" >&2
+            exit 1
+          fi
+
+      - name: Verify static ORES trace markers
+        run: "$RUNNER_TEMP/ores-trace-contract" .

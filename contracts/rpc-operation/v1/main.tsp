@@ -95,20 +95,20 @@ model RpcOperation {
 /**
  * Call-site trace identifier attached through the ores.otel.log seam
  * (`addTraceId`/`addTrace`, `add_trace_id`/`add_trace`, `AddTraceID`/`AddTrace`).
- * Always an inline literal fixed at generation time, never a variable assembled at
- * runtime: `ores-trace-` + 21-character nanoid.
- * Mirrors ores-otel/ores.otel.log `contracts/ores-ids` (PR #81).
+ * Static markers are inline literals fixed at generation time. The compatibility
+ * contract admits a 12..=64 character suffix so existing wire/runtime ids remain
+ * valid; current ORES generators mint 21-character nanoids as the canonical form.
  */
-@pattern("^ores-trace-[A-Za-z0-9_-]{21}$")
+@pattern("^ores-trace-[A-Za-z0-9_-]{12,64}$")
 scalar OresTraceId extends string;
 
 /**
  * Routine identifier attached through `addRoutineId` (and language equivalents).
  * Declared once at the top of the generated dispatch function and reused by every
- * emit in that function: `ores-routine-` + 21-character nanoid.
- * Mirrors ores-otel/ores.otel.log `contracts/ores-ids` (PR #81).
+ * emit in that function. Compatibility admits 12..=64; current generators mint
+ * a 21-character nanoid.
  */
-@pattern("^ores-routine-[A-Za-z0-9_-]{21}$")
+@pattern("^ores-routine-[A-Za-z0-9_-]{12,64}$")
 scalar OresRoutineId extends string;
 
 /**

@@ -20,16 +20,18 @@ re-raises, this is the shape of the event it emits.
 
 | Declaration | Purpose |
 | --- | --- |
-| `OresTraceId` | `^ores-trace-[A-Za-z0-9_-]{21}$` — static call-site trace id, an inline literal fixed at generation time |
-| `OresRoutineId` | `^ores-routine-[A-Za-z0-9_-]{21}$` — static routine id, declared once per generated function |
+| `OresTraceId` | `^ores-trace-[A-Za-z0-9_-]{12,64}$` compatibility shape; current generators mint 21-character nanoids and keep the static id inline at the call site |
+| `OresRoutineId` | `^ores-routine-[A-Za-z0-9_-]{12,64}$` compatibility shape; current generators mint 21-character nanoids and declare the id once per generated function |
 | `RpcErrorTransport` | carrier the failed invocation arrived on: `rpc`, `http`, `in_process` |
 | `RpcDispatchOutcome` | `error`, `panic`, `timeout`, `cancelled` |
 | `RpcErrorKind` | closed, language-neutral classification of the trapped failure |
 | `RpcErrorLogEvent` | the event itself |
 
-Both id patterns mirror `ores-otel/ores.otel.log` `contracts/ores-ids`
-(PR #81, merged 2026-09-13) exactly, so an id admitted by one repository is
-admitted by the other.
+The important distinction is **admission vs generation**. Existing ORES wire/runtime
+contracts admit suffix widths from 12 through 64 for compatibility. New ORES tooling
+uses the 21-character nanoid width as the canonical generated form. A CI guard must
+not silently narrow the wire contract merely because the current generator emits a
+single width.
 
 `RpcErrorLogEvent` is payload-free by construction. It has no property for a
 request or response body, a path or query value, a header, a `meta` object, or
@@ -44,9 +46,10 @@ this contract's snake_case wire convention.
 ## Instance corpus
 
 `instances/<Declaration>/{valid,invalid}/` holds the positive and negative cases.
-Every file is a single JSON value. The negative cases include the legacy
-`dd-trace-` prefix, wrong suffix lengths, a non-string id, and payload-bearing
-fields.
+Every file is a single JSON value. The id corpus pins both compatibility boundaries
+and the canonical generator subset: widths 12, 20, 21, 22, 41 and 64 are valid;
+11 and 65 are invalid. Wrong prefixes, disallowed characters, non-string values
+and payload-bearing event fields remain invalid.
 
 ## Scope of the TJSV comparison
 
@@ -83,8 +86,8 @@ interchangeable:
 
 | Field | Kind | Shape | Required |
 | --- | --- | --- | --- |
-| `ores_trace_id` | **static** call-site identity, emitted as an inline literal by the generator | `ores-trace-<21-char nanoid>` | yes |
-| `ores_routine_id` | **static** routine identity for the call site | `ores-routine-<21-char nanoid>` | no |
+| `ores_trace_id` | **static** call-site identity, emitted as an inline literal by the generator | `ores-trace-<12..64 compatible; 21 generated>` | yes |
+| `ores_routine_id` | **static** routine identity for the call site | `ores-routine-<12..64 compatible; 21 generated>` | no |
 | `trace_id` | **dynamic** W3C trace-context trace-id for the invocation | 32 lowercase hex | no |
 | `span_id` | **dynamic** W3C trace-context span-id for the invocation | 16 lowercase hex | no |
 
@@ -126,8 +129,8 @@ Per [Correcting an admitted family](../../../docs/contract-stack.md#correcting-a
 ### `trace_id` → `ores_trace_id` (static call-site identity)
 
 **What the old shape meant.** `RpcErrorLogEvent.trace_id` was required and
-`$ref`ed `OresTraceId` — the `ores-trace-<21-char nanoid>` literal the generator
-emits inline at a source location. It identified *a line of code*.
+`$ref`ed `OresTraceId` — the static `ores-trace-*` literal the generator emits
+inline at a source location. It identified *a line of code*.
 
 **Why it could not stand.** `trace_id` in the sibling `rpc-client-plan/v1` means
 the W3C trace-context trace-id for *one invocation*. Two different concepts held

@@ -8,7 +8,7 @@
     "typespec",
     "json_schema"
   ],
-  "notes": "The kind discriminator carries the unary/streaming split: a unary plan must not carry stream shaping and a streaming plan must not carry unary-only shaping. Mutually exclusive rate-shaping fields are enforced in the JSON Schema peer; TypeSpec expresses the field set and bounds.",
+  "notes": "The kind discriminator carries the unary/streaming split: a unary plan must not carry stream shaping and a streaming plan must not carry unary-only shaping. Cross-field rules (the surface split, mutually exclusive rate shaping, backoff requires a retry budget) are authored in both peers: allOf in JSON Schema, @extension(\"allOf\") in TypeSpec.",
   "tjsv": {
     "int64Strategy": "number",
     "sealObjectSchemas": true

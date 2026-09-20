@@ -1,0 +1,7 @@
+{
+  "plan_version": "1.0.0",
+  "kind": "unary",
+  "key": "get_health",
+  "rpc_path": "/v1/rpc",
+  "serial_strategy": "json"
+}

@@ -236,14 +236,14 @@
       }
     },
     "OresTraceId": {
-      "description": "Static call-site trace identifier emitted as an inline literal by the generator: the fixed prefix ores-trace- followed by a 21-character nanoid alphabet run. Independently authored peer of the ores-otel/ores.otel.log contracts/ores-ids declaration of the same name.",
+      "description": "Static call-site trace identifier. Compatibility accepts the fixed ores-trace- prefix followed by 12 to 64 characters from the nanoid alphabet; current ORES generators mint 21-character nanoids as the canonical form.",
       "type": "string",
-      "pattern": "^ores-trace-[A-Za-z0-9_-]{21}$"
+      "pattern": "^ores-trace-[A-Za-z0-9_-]{12,64}$"
     },
     "OresRoutineId": {
-      "description": "Static routine identifier declared once per generated dispatch function: the fixed prefix ores-routine- followed by a 21-character nanoid alphabet run. Independently authored peer of the ores-otel/ores.otel.log contracts/ores-ids declaration of the same name.",
+      "description": "Static routine identifier. Compatibility accepts the fixed ores-routine- prefix followed by 12 to 64 characters from the nanoid alphabet; current ORES generators mint 21-character nanoids as the canonical form.",
       "type": "string",
-      "pattern": "^ores-routine-[A-Za-z0-9_-]{21}$"
+      "pattern": "^ores-routine-[A-Za-z0-9_-]{12,64}$"
     },
     "RpcErrorTransport": {
       "description": "Carrier the failed invocation arrived on. Identity only; no address, authority, path or header value is ever recorded.",

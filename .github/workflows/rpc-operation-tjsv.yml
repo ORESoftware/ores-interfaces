@@ -25,7 +25,7 @@ jobs:
     timeout-minutes: 15
     env:
       EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-      TJSV_SHA: 1614779275115258db73b92c938313e8ae437936
+      TJSV_SHA: bfe9667cc6ac8863d436587d8125c4eb66ddd647
       CONTRACT_ROOT: contracts/rpc-operation/v1
     steps:
       - name: Check out exact candidate
@@ -100,10 +100,6 @@ jobs:
               if (pattern.test(name)) throw new Error(`RpcErrorLogEvent property ${name} looks payload-bearing`);
           }
           if (event.properties?.payload_omitted?.const !== true) throw new Error('payload_omitted must be const true');
-          // ores_trace_id, not trace_id: the static call-site identity is what an
-          // event must carry. trace_id is now the OPTIONAL W3C id of the
-          // invocation, and requiring it here is what kept this gate red after
-          // the rename — it was asserting the ambiguity the rename removed.
           for (const required of ['schema_version', 'operation_key', 'transport', 'outcome', 'error_kind', 'error_code', 'ores_trace_id', 'rpc_layer', 're_raised', 'payload_omitted'])
             if (!(event.required ?? []).includes(required)) throw new Error(`RpcErrorLogEvent must require ${required}`);
           for (const optional of ['trace_id', 'span_id'])

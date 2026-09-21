@@ -1,0 +1,127 @@
+name: Receipt capture
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - shared-interfaces.json
+      - scripts/**
+      - generated/public/**
+      - .github/workflows/receipt-capture.yml
+  pull_request:
+    paths:
+      - shared-interfaces.json
+      - scripts/**
+      - generated/public/**
+      - .github/workflows/receipt-capture.yml
+permissions:
+  contents: read
+concurrency:
+  group: receipt-capture-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  capture:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Resolve immutable dependency policy
+        id: pins
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync } from 'node:fs';
+          import { readPolicy } from './scripts/policy.mjs';
+          const p = await readPolicy(process.cwd());
+          appendFileSync(process.env.GITHUB_OUTPUT, `source=${p.source.commit}\nvalidator=${p.validator.commit}\n`);
+          NODE
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ores-otel/ores-interfaces
+          ref: ${{ steps.pins.outputs.source }}
+          path: .deps/compat
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ORESoftware/typespec-json-schema-validator
+          ref: ${{ steps.pins.outputs.validator }}
+          path: .deps/tjsv
+          persist-credentials: false
+      - name: Install validator toolchain
+        run: npm ci --prefix .deps/tjsv
+      - name: Generate reviewed receipts — pass 1
+        run: npm run build
+      - name: Snapshot first generated receipts
+        run: |
+          node --input-type=module <<'NODE'
+          import { copyFileSync, mkdirSync } from 'node:fs';
+          import { join } from 'node:path';
+          const destination = join(process.env.RUNNER_TEMP, 'ores-receipts-pass-1');
+          mkdirSync(destination, { recursive: true });
+          for (const name of ['provenance.json', 'interface-release.json']) {
+            copyFileSync(`generated/public/${name}`, join(destination, name));
+          }
+          NODE
+      - name: Generate reviewed receipts — pass 2
+        run: npm run build
+      - name: Prove consecutive builds are byte-identical
+        run: |
+          node --input-type=module <<'NODE'
+          import { createHash } from 'node:crypto';
+          import { readFileSync } from 'node:fs';
+          import { join } from 'node:path';
+
+          const first = join(process.env.RUNNER_TEMP, 'ores-receipts-pass-1');
+          for (const name of ['provenance.json', 'interface-release.json']) {
+            const a = readFileSync(join(first, name));
+            const b = readFileSync(`generated/public/${name}`);
+            const firstSha256 = createHash('sha256').update(a).digest('hex');
+            const secondSha256 = createHash('sha256').update(b).digest('hex');
+            console.log(JSON.stringify({
+              path: `generated/public/${name}`,
+              firstSha256,
+              secondSha256,
+              bytes: b.length,
+              consecutiveBuildsIdentical: a.equals(b),
+            }));
+            if (!a.equals(b)) {
+              throw new Error(`${name} changed between two consecutive builds on ${process.platform}`);
+            }
+          }
+          NODE
+      - name: Prove committed receipts match deterministic regeneration
+        run: |
+          git diff --exit-code -- \
+            generated/public/provenance.json \
+            generated/public/interface-release.json
+      - name: Print receipt identity
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          for (const path of ['generated/public/provenance.json', 'generated/public/interface-release.json']) {
+            const value = JSON.parse(readFileSync(path, 'utf8'));
+            console.log(JSON.stringify({
+              path,
+              runId: value?.admission?.runId ?? value?.runId ?? null,
+              packageId: value?.packageId ?? null,
+              releaseId: value?.releaseId ?? null,
+              irId: value?.admission?.irId ?? value?.irId ?? null,
+            }));
+          }
+          NODE
+      - name: Capture exact generated receipts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: deterministic-receipts-${{ matrix.os }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            generated/public/interface-release.json
+            generated/public/provenance.json
+          if-no-files-found: error
+          retention-days: 3

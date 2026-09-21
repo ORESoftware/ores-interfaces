@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: ORESoftware/typespec-json-schema-validator
-          ref: 1614779275115258db73b92c938313e8ae437936
+          ref: bfe9667cc6ac8863d436587d8125c4eb66ddd647
           path: .deps/tjsv
           persist-credentials: false
           show-progress: false

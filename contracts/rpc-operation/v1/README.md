@@ -66,7 +66,7 @@ closed if any of them goes stale.
 
 ```sh
 npx --yes \
-  --package="https://github.com/ORESoftware/typespec-json-schema-validator/archive/1614779275115258db73b92c938313e8ae437936.tar.gz" \
+  --package="https://github.com/ORESoftware/typespec-json-schema-validator/archive/bfe9667cc6ac8863d436587d8125c4eb66ddd647.tar.gz" \
   tjsv check \
   --typespec=contracts/rpc-operation/v1/main.tsp \
   --schema=contracts/rpc-operation/v1/authored.schema.json \

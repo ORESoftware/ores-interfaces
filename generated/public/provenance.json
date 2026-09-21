@@ -7,11 +7,11 @@
     "repository": "ORESoftware/ores-interfaces",
     "source": {
       "repository": "ores-otel/ores-interfaces",
-      "commit": "3d26d3c0f79277b040e4b0665e6d6e6808f695de"
+      "commit": "ff0d346270e0393fe8d1f95b2f2ec19e1ef97405"
     },
     "validator": {
       "repository": "ORESoftware/typespec-json-schema-validator",
-      "commit": "1614779275115258db73b92c938313e8ae437936"
+      "commit": "bfe9667cc6ac8863d436587d8125c4eb66ddd647"
     },
     "authorityModel": "independent-typespec-and-json-schema-peers",
     "authorityTransfer": false,
@@ -61,9 +61,9 @@
     "schema": "ores.shared-public-admission/v1",
     "status": "passed",
     "validatorRepository": "ORESoftware/typespec-json-schema-validator",
-    "validatorRevision": "1614779275115258db73b92c938313e8ae437936",
-    "irId": "e52a3930658aa2f6fa32c58c08f768d933b29410414bb4b0536865ba07166b80",
-    "runId": "c04c0367f5f17e6db9511a8f79bea42e8627d33b590baf4bbe01d685041bf819",
+    "validatorRevision": "bfe9667cc6ac8863d436587d8125c4eb66ddd647",
+    "irId": "20343d4b374189ae5bb604292848fe818a3475f6ae3529257a0f8da94fc44c16",
+    "runId": "59613721a0d081c3bcfcf3c36749afceaec78dcd35f27c5307d71a9ff244b689",
     "declarations": [
       "Ores.Validation.GitHubActionsBuildLogEvent",
       "Ores.Validation.GitHubActionsLogStream",
@@ -77,7 +77,7 @@
       "typespec": "391354e9e6144a556747a7db4cf87bf1b01f68a86761b561452eb8af918dfdc9",
       "authoredSchema": "da6d98a2d6c538ee18132c6035cab46dd1bb45e333ec4c25f22db47b9043a834",
       "corpus": "802c2bf7e30f2bc4f98ce77c93a770e47ed9b330696fc505b6fd59998110643e",
-      "sourceLock": "784ef6972fba5a5e9fb9120e57dfdbadebb4c810219ef20433d449c522502cc7"
+      "sourceLock": "336569bae42038386ddbde99c8c983f0ffbe97354cf943130ab7ee1659e4491c"
     }
   },
   "files": {
@@ -85,5 +85,5 @@
     "main.tsp": "391354e9e6144a556747a7db4cf87bf1b01f68a86761b561452eb8af918dfdc9",
     "schema.json": "da6d98a2d6c538ee18132c6035cab46dd1bb45e333ec4c25f22db47b9043a834"
   },
-  "packageId": "a6f7ad21c3609d6b3472b23744de893f96f753213a3b5105211e4bdc203a67da"
+  "packageId": "ac840c6463206e7ffcfde8983f72db9864f77dd686296d648bbf96a34f6b5f54"
 }

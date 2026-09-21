@@ -4,17 +4,13 @@ on:
   pull_request:
     paths:
       - '.github/workflows/refresh-deterministic-receipts-once.yml'
-  push:
-    branches: [fix/deterministic-public-receipts-pin-chain]
-    paths:
-      - '.github/workflows/refresh-deterministic-receipts-once.yml'
 
 permissions:
   contents: write
 
 jobs:
   refresh:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -27,35 +23,22 @@ jobs:
         with:
           node-version: '22.16.0'
           package-manager-cache: false
-      - name: Advance coherent immutable source and validator pins
+      - name: Assert coherent immutable source and validator pins
         run: |
           set -euo pipefail
           node --input-type=module <<'NODE'
           import { readFileSync, writeFileSync } from 'node:fs';
           const source = 'ff0d346270e0393fe8d1f95b2f2ec19e1ef97405';
           const validator = 'bfe9667cc6ac8863d436587d8125c4eb66ddd647';
-          const oldSource = '18840cb8e4bdff51ea394a4d6221f7ab2cee1061';
           const oldValidator = '03aa2c1e44c6745c1abca9c1399a942cc315a8d8';
-
-          const policyPath = 'shared-interfaces.json';
-          const policy = JSON.parse(readFileSync(policyPath, 'utf8'));
-          if (policy.source?.commit === oldSource) policy.source.commit = source;
-          if (policy.validator?.commit === oldValidator) policy.validator.commit = validator;
+          const policy = JSON.parse(readFileSync('shared-interfaces.json', 'utf8'));
           if (policy.source?.commit !== source) throw new Error(`unexpected source pin ${policy.source?.commit}`);
           if (policy.validator?.commit !== validator) throw new Error(`unexpected validator pin ${policy.validator?.commit}`);
-          writeFileSync(policyPath, `${JSON.stringify(policy, null, 2)}\n`);
-
-          for (const path of [
-            '.github/workflows/env-manifest-tjsv.yml',
-            '.github/workflows/rpc-operation-tjsv.yml',
-            'contracts/rpc-operation/v1/README.md',
-          ]) {
-            const before = readFileSync(path, 'utf8');
-            const after = before.split(oldValidator).join(validator);
-            if (!after.includes(validator)) throw new Error(`${path} does not contain the reviewed validator pin`);
-            if (after.includes(oldValidator)) throw new Error(`${path} retained old validator pin`);
-            writeFileSync(path, after);
-          }
+          const path = 'contracts/rpc-operation/v1/README.md';
+          const before = readFileSync(path, 'utf8');
+          const after = before.split(oldValidator).join(validator);
+          if (!after.includes(validator) || after.includes(oldValidator)) throw new Error('README validator pin did not converge');
+          writeFileSync(path, after);
           NODE
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -86,8 +69,6 @@ jobs:
           git config user.name ORESoftware
           git config user.email noreply@github.com
           git add shared-interfaces.json \
-            .github/workflows/env-manifest-tjsv.yml \
-            .github/workflows/rpc-operation-tjsv.yml \
             contracts/rpc-operation/v1/README.md \
             generated/public/provenance.json \
             generated/public/interface-release.json

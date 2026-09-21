@@ -1,6 +1,9 @@
 name: refresh deterministic receipts once
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/refresh-deterministic-receipts-once.yml'
   push:
     branches: [fix/deterministic-public-receipts-pin-chain]
     paths:
@@ -11,6 +14,7 @@ permissions:
 
 jobs:
   refresh:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -35,10 +39,10 @@ jobs:
 
           const policyPath = 'shared-interfaces.json';
           const policy = JSON.parse(readFileSync(policyPath, 'utf8'));
-          if (policy.source?.commit !== oldSource) throw new Error(`unexpected source pin ${policy.source?.commit}`);
-          if (policy.validator?.commit !== oldValidator) throw new Error(`unexpected validator pin ${policy.validator?.commit}`);
-          policy.source.commit = source;
-          policy.validator.commit = validator;
+          if (policy.source?.commit === oldSource) policy.source.commit = source;
+          if (policy.validator?.commit === oldValidator) policy.validator.commit = validator;
+          if (policy.source?.commit !== source) throw new Error(`unexpected source pin ${policy.source?.commit}`);
+          if (policy.validator?.commit !== validator) throw new Error(`unexpected validator pin ${policy.validator?.commit}`);
           writeFileSync(policyPath, `${JSON.stringify(policy, null, 2)}\n`);
 
           for (const path of [
@@ -47,8 +51,8 @@ jobs:
             'contracts/rpc-operation/v1/README.md',
           ]) {
             const before = readFileSync(path, 'utf8');
-            if (!before.includes(oldValidator)) throw new Error(`${path} did not contain expected old validator pin`);
             const after = before.split(oldValidator).join(validator);
+            if (!after.includes(validator)) throw new Error(`${path} does not contain the reviewed validator pin`);
             if (after.includes(oldValidator)) throw new Error(`${path} retained old validator pin`);
             writeFileSync(path, after);
           }

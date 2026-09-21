@@ -1,14 +1,43 @@
 {
   "schema": "ores.shared-interfaces-source/v1",
   "repository": "ORESoftware/ores-interfaces",
-  "source": { "repository": "ores-otel/ores-interfaces", "commit": "18840cb8e4bdff51ea394a4d6221f7ab2cee1061" },
-  "validator": { "repository": "ORESoftware/typespec-json-schema-validator", "commit": "03aa2c1e44c6745c1abca9c1399a942cc315a8d8" },
+  "source": {
+    "repository": "ores-otel/ores-interfaces",
+    "commit": "ff0d346270e0393fe8d1f95b2f2ec19e1ef97405"
+  },
+  "validator": {
+    "repository": "ORESoftware/typespec-json-schema-validator",
+    "commit": "bfe9667cc6ac8863d436587d8125c4eb66ddd647"
+  },
   "authorityModel": "independent-typespec-and-json-schema-peers",
   "authorityTransfer": false,
-  "expectedDeclarations": ["Ores.Validation.GitHubActionsBuildLogEvent", "Ores.Validation.GitHubActionsLogStream", "Ores.Validation.PageQuery", "Ores.Validation.ProblemDetails", "Ores.Validation.PublicValidationContract", "Ores.Validation.RequestMeta"],
+  "expectedDeclarations": [
+    "Ores.Validation.GitHubActionsBuildLogEvent",
+    "Ores.Validation.GitHubActionsLogStream",
+    "Ores.Validation.PageQuery",
+    "Ores.Validation.ProblemDetails",
+    "Ores.Validation.PublicValidationContract",
+    "Ores.Validation.RequestMeta"
+  ],
   "scopes": {
-    "isomorphic": ["Ores.Validation.GitHubActionsBuildLogEvent", "Ores.Validation.GitHubActionsLogStream", "Ores.Validation.PageQuery", "Ores.Validation.ProblemDetails", "Ores.Validation.PublicValidationContract", "Ores.Validation.RequestMeta"],
-    "client": [], "edge": [], "server": []
+    "isomorphic": [
+      "Ores.Validation.GitHubActionsBuildLogEvent",
+      "Ores.Validation.GitHubActionsLogStream",
+      "Ores.Validation.PageQuery",
+      "Ores.Validation.ProblemDetails",
+      "Ores.Validation.PublicValidationContract",
+      "Ores.Validation.RequestMeta"
+    ],
+    "client": [],
+    "edge": [],
+    "server": []
   },
-  "runtimeExports": { "browser": ["isomorphic"], "node": ["isomorphic"], "deno": ["isomorphic"], "bun": ["isomorphic"], "edge": ["isomorphic"], "native": ["isomorphic"] }
+  "runtimeExports": {
+    "browser": ["isomorphic"],
+    "node": ["isomorphic"],
+    "deno": ["isomorphic"],
+    "bun": ["isomorphic"],
+    "edge": ["isomorphic"],
+    "native": ["isomorphic"]
+  }
 }

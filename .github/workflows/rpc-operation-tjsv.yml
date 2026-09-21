@@ -25,7 +25,7 @@ jobs:
     timeout-minutes: 15
     env:
       EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-      TJSV_SHA: 03aa2c1e44c6745c1abca9c1399a942cc315a8d8
+      TJSV_SHA: bfe9667cc6ac8863d436587d8125c4eb66ddd647
       CONTRACT_ROOT: contracts/rpc-operation/v1
     steps:
       - name: Check out exact candidate

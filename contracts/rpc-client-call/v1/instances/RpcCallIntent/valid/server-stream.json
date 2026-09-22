@@ -12,5 +12,5 @@
       "x-ores-trace-id": "trace-123"
     }
   },
-  "terminal": "stream"
+  "terminal": "do_stream"
 }

@@ -20,7 +20,7 @@
     },
     "RpcCallTerminal": {
       "type": "string",
-      "enum": ["make_call", "stream"]
+      "enum": ["make_call", "do_stream"]
     },
     "RpcOperationDescriptor": {
       "type": "object",

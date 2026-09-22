@@ -30,7 +30,7 @@ enum RpcStreamMode {
 /** Terminal action selected after fluent request configuration. */
 enum RpcCallTerminal {
   make_call: "make_call",
-  stream: "stream",
+  do_stream: "do_stream",
 }
 
 /** Stable, product-neutral descriptor embedded by generated client code. */

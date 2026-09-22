@@ -1,0 +1,8 @@
+{
+  "handlers_file": "src/routes/v1/users/[id]/handlers.rs",
+  "operation": "get_user",
+  "route_file": "src/routes/v1/users/[id]/route.rs",
+  "route_handler": "get",
+  "repository": "canonical-cloud/canonical-api-server",
+  "commit_sha": "1614779275115258db73b92c938313e8ae437936"
+}

@@ -2,32 +2,8 @@
   "schema": "ores.typespec-json-schema-validator.mapping/v1",
   "declarations": [],
   "ignore": {
-    "typespec": [
-      "Ores.Rpc.Operation.V1.HttpMethod",
-      "Ores.Rpc.Operation.V1.RpcAudience",
-      "Ores.Rpc.Operation.V1.RpcScope",
-      "Ores.Rpc.Operation.V1.RpcPayloadCodec",
-      "Ores.Rpc.Operation.V1.RpcStreamMode",
-      "Ores.Rpc.Operation.V1.RpcSource",
-      "Ores.Rpc.Operation.V1.RpcHttpProjection",
-      "Ores.Rpc.Operation.V1.RpcCodecSet",
-      "Ores.Rpc.Operation.V1.RpcRequestShape",
-      "Ores.Rpc.Operation.V1.RpcResponseShape",
-      "Ores.Rpc.Operation.V1.RpcOperation"
-    ],
-    "generated": [
-      "HttpMethod",
-      "RpcAudience",
-      "RpcScope",
-      "RpcPayloadCodec",
-      "RpcStreamMode",
-      "RpcSource",
-      "RpcHttpProjection",
-      "RpcCodecSet",
-      "RpcRequestShape",
-      "RpcResponseShape",
-      "RpcOperation"
-    ],
-    "authored": ["requestShape", "responseShape", "schemaRef"]
+    "typespec": [],
+    "generated": [],
+    "authored": []
   }
 }

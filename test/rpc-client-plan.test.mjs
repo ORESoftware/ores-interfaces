@@ -155,11 +155,15 @@ test('the operation-key grammar matches rpc-operation/v1', async () => {
   const peer = JSON.parse(
     await readFile('contracts/rpc-operation/v1/authored.schema.json', 'utf8'),
   );
+  // Resolve the named peer rather than depending on whether RpcOperation is
+  // serialized inline at the document root or referenced from it.
+  const operation = peer.$defs?.RpcOperation ?? peer;
+  assert.ok(operation?.properties?.operation_key, 'RpcOperation.operation_key must exist');
   // A plan names an operation. If the two grammars drift, a key can be valid in
   // one contract and rejected by the other, which is exactly the class of gap
   // this registry exists to close.
-  assert.equal(plan.properties.key.pattern, peer.properties.operation_key.pattern);
-  assert.equal(plan.properties.key.minLength, peer.properties.operation_key.minLength);
+  assert.equal(plan.properties.key.pattern, operation.properties.operation_key.pattern);
+  assert.equal(plan.properties.key.minLength, operation.properties.operation_key.minLength);
 });
 
 test('a credential cannot be expressed in a plan, not merely discouraged', () => {

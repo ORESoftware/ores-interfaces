@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "operation_key": "canonical.cloud.get_user",
+  "namespace": ["canonical", "cloud"],
+  "source": {
+    "handlers_file": "src/routes/v1/users/[id]/handlers.rs",
+    "operation": "get_user",
+    "route_file": "src/routes/v1/users/[id]/route.rs",
+    "route_handler": "get",
+    "repository": "canonical-cloud/canonical-api-server",
+    "commit_sha": "1614779275115258db73b92c938313e8ae437936"
+  },
+  "rpc_transport_path": "/v1/rpc",
+  "stream": "unary",
+  "http": { "method": "GET", "path": "/v1/users/{id}" },
+  "scope": "regular",
+  "audiences": ["browser"],
+  "codecs": { "allowed": ["json", "protobuf"], "default": "json" },
+  "request": {
+    "path_schema": { "type": "object", "properties": { "id": { "type": "string" } } },
+    "query_schema": { "type": "object" }
+  },
+  "response": {
+    "body_schema": { "type": "object" },
+    "error_schema": { "type": "object" }
+  },
+  "contract_sha256": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+}

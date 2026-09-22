@@ -25,6 +25,7 @@ re-raises, this is the shape of the event it emits.
 | `RpcErrorTransport` | carrier the failed invocation arrived on: `rpc`, `http`, `in_process` |
 | `RpcDispatchOutcome` | `error`, `panic`, `timeout`, `cancelled` |
 | `RpcErrorKind` | closed, language-neutral classification of the trapped failure |
+| `RpcLayer` | seam that emitted the event: `handler`, `dispatch`, `transport`, `client` |
 | `RpcErrorLogEvent` | the event itself |
 
 The important distinction is **admission vs generation**. Existing ORES wire/runtime
@@ -45,22 +46,62 @@ this contract's snake_case wire convention.
 
 ## Instance corpus
 
-`instances/<Declaration>/{valid,invalid}/` holds the positive and negative cases.
-Every file is a single JSON value. The id corpus pins both compatibility boundaries
-and the canonical generator subset: widths 12, 20, 21, 22, 41 and 64 are valid;
-11 and 65 are invalid. Wrong prefixes, disallowed characters, non-string values
-and payload-bearing event fields remain invalid.
+`instances/<Declaration>/{valid,invalid}/` holds positive and negative cases. TJSV
+requires both authorities to accept every `valid/` instance and both to reject every
+`invalid/` instance. Every file is a single JSON value.
+
+The id corpus pins both compatibility boundaries and the canonical generator subset:
+widths 12, 20, 21, 22, 41 and 64 are valid; 11 and 65 are invalid. Wrong prefixes,
+disallowed characters, non-string values and payload-bearing event fields remain
+invalid.
+
+The operation-IR negative cases exercise each constraint the TypeSpec previously
+failed to state: `dependentRequired` between `route_file` and `route_handler`,
+`uniqueItems` on `audiences` and `codecs.allowed`, `minItems` on `namespace`, the
+`handlers.rs` and `route.rs` filename patterns, the leading-slash HTTP path, the
+dotted `operation_key`, and the section-slot cases (`true`, `""`, `null`, `42`)
+that the old `unknown` slot type wrongly accepted.
 
 ## Scope of the TJSV comparison
 
-`tjsv.mapping.json` currently excludes the pre-existing `RpcOperation` group from
-comparison. Those declarations are not yet at peer parity: the authored schema
-models the request/response schema slots as `schemaRef` (object or non-empty
-string) while the TypeSpec models them as `unknown`, and the authored schema has
-no peers for several TypeSpec declarations. Bringing them to parity changes the
-published operation-IR contract and belongs in its own reviewed change. The
-exclusions are declared explicitly, and TJSV's mapping-integrity gate fails
-closed if any of them goes stale.
+`tjsv.mapping.json` excludes nothing. Every declaration in the pair is compared,
+and CI fails closed if an exclusion is ever reintroduced.
+
+This was not always true. The `RpcOperation` group was originally excluded, which
+left the operation IR that ores-stack and api-docs consume without a fail-closed
+gate. The two authorities were genuinely out of parity, but the divergence was
+one-sided: the authored JSON Schema published patterns, `minItems`, `uniqueItems`
+and `dependentRequired` that the TypeSpec never stated, and modelled section slots
+as an inline schema object or a non-empty reference string where the TypeSpec said
+`unknown`.
+
+Parity is restored by having TypeSpec state constraints the authored schema already
+published, not by loosening the published schema. Generated schemas remain evidence
+only.
+
+## Operation declarations
+
+| Declaration | Purpose |
+| --- | --- |
+| `HttpMethod` | wire method of an optional HTTP projection |
+| `RpcRouteHandler` | lowercase Axum handler name a `route.rs` projection binds to |
+| `RpcAudience` | `browser`, `server` |
+| `RpcScope` | `regular`, `admin` |
+| `RpcPayloadCodec` | `json`, `protobuf`, `messagepack` |
+| `RpcStreamMode` | `unary`, `server_stream`, `client_stream`, `bidi`; absent means legacy unary |
+| `RpcNamespaceSegment` | one lowercase segment of the operation namespace |
+| `RpcSchemaReference` | non-empty locator for a schema held outside this document |
+| `RpcInlineSchema` | a JSON Schema document carried inline; deliberately open |
+| `RpcSchemaRef` | section slot value: `RpcInlineSchema` or `RpcSchemaReference` |
+| `RpcSource` | authoritative `handlers.rs` operation and optional `route.rs` projection |
+| `RpcHttpProjection` | optional REST method/path |
+| `RpcCodecSet` | allowed codecs and default |
+| `RpcRequestShape` | path/query/header/body section slots |
+| `RpcResponseShape` | header/trailer/body/error section slots |
+| `RpcOperation` | operation IR itself |
+
+Declaration names are PascalCase on both sides, matching the peer names TJSV
+compares. Every wire property name is snake_case on both sides.
 
 ## Verify locally
 

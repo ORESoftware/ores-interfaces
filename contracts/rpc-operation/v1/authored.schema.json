@@ -3,235 +3,166 @@
   "$id": "https://github.com/oresoftware/ores-interfaces/raw/main/contracts/rpc-operation/v1/authored.schema.json",
   "title": "ORES normalized RPC operation v1",
   "description": "Language-neutral operation IR emitted from one authoritative Rust handlers.rs operation plus peer TypeSpec/JSON-Schema contracts. route.rs and REST metadata are optional HTTP projections. Client generators for Rust, Go, Dart, TypeScript and Gleam consume this shape; the API server uses the same operation identity to build POST /v1/rpc dispatch.",
-  "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "operation_key",
-    "namespace",
-    "source",
-    "rpc_transport_path",
-    "scope",
-    "audiences",
-    "codecs",
-    "request",
-    "response",
-    "contract_sha256"
-  ],
-  "properties": {
-    "schema_version": {
-      "const": 1
-    },
-    "operation_key": {
+  "$ref": "#/$defs/RpcOperation",
+  "$defs": {
+    "HttpMethod": {
       "type": "string",
-      "minLength": 3,
-      "maxLength": 200,
-      "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$"
+      "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
     },
-    "namespace": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "string",
-        "minLength": 1,
-        "pattern": "^[a-z][a-z0-9_-]*$"
-      }
+    "RpcRouteHandler": {
+      "description": "Lowercase Axum handler function name a route.rs HTTP projection binds the operation to. Distinct from HttpMethod, which is the wire method.",
+      "type": "string",
+      "enum": ["get", "post", "put", "patch", "delete", "head", "options"]
     },
-    "source": {
+    "RpcAudience": {
+      "type": "string",
+      "enum": ["browser", "server"]
+    },
+    "RpcScope": {
+      "type": "string",
+      "enum": ["regular", "admin"]
+    },
+    "RpcPayloadCodec": {
+      "type": "string",
+      "enum": ["json", "protobuf", "messagepack"]
+    },
+    "RpcStreamMode": {
+      "description": "RPC streaming mode. When absent, consumers must preserve legacy unary semantics.",
+      "type": "string",
+      "enum": ["unary", "server_stream", "client_stream", "bidi"]
+    },
+    "RpcNamespaceSegment": {
+      "description": "One dotted segment of the operation namespace.",
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z][a-z0-9_-]*$"
+    },
+    "RpcSchemaReference": {
+      "description": "Reference to a schema that lives outside this document: a contract id, a $ref URI, or any other non-empty locator the consuming generator resolves.",
+      "type": "string",
+      "minLength": 1
+    },
+    "RpcInlineSchema": {
+      "description": "A JSON Schema document carried inline in an operation section slot. Deliberately open: it is an arbitrary schema, not a shape this contract owns.",
       "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "handlers_file",
-        "operation"
-      ],
-      "properties": {
-        "handlers_file": {
-          "type": "string",
-          "pattern": "(^|/)handlers\\.rs$"
-        },
-        "operation": {
-          "type": "string",
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-        },
-        "route_file": {
-          "type": "string",
-          "pattern": "(^|/)route\\.rs$"
-        },
-        "route_handler": {
-          "type": "string",
-          "enum": [
-            "get",
-            "post",
-            "put",
-            "patch",
-            "delete",
-            "head",
-            "options"
-          ]
-        },
-        "repository": {
-          "type": "string",
-          "minLength": 1
-        },
-        "commit_sha": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        }
-      },
-      "dependentRequired": {
-        "route_file": [
-          "route_handler"
-        ],
-        "route_handler": [
-          "route_file"
-        ]
-      }
+      "properties": {},
+      "unevaluatedProperties": {}
     },
-    "rpc_transport_path": {
-      "const": "/v1/rpc"
-    },
-    "stream": {
-      "type": "string",
-      "enum": [
-        "unary",
-        "server_stream",
-        "client_stream",
-        "bidi"
-      ],
-      "description": "RPC streaming mode. When absent, consumers must preserve legacy unary semantics."
-    },
-    "http": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "method",
-        "path"
-      ],
-      "properties": {
-        "method": {
-          "type": "string",
-          "enum": [
-            "GET",
-            "POST",
-            "PUT",
-            "PATCH",
-            "DELETE",
-            "HEAD",
-            "OPTIONS"
-          ]
-        },
-        "path": {
-          "type": "string",
-          "pattern": "^/"
-        }
-      }
-    },
-    "scope": {
-      "type": "string",
-      "enum": [
-        "regular",
-        "admin"
+    "RpcSchemaRef": {
+      "description": "What a request/response section slot holds: either an inline JSON Schema document or a non-empty reference to one. The two forms are disjoint by JSON type, so a value matches at most one of them.",
+      "anyOf": [
+        { "$ref": "#/$defs/RpcInlineSchema" },
+        { "$ref": "#/$defs/RpcSchemaReference" }
       ]
     },
-    "audiences": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": {
-        "type": "string",
-        "enum": [
-          "browser",
-          "server"
-        ]
-      }
-    },
-    "codecs": {
+    "RpcSource": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "allowed",
-        "default"
-      ],
+      "required": ["handlers_file", "operation"],
+      "properties": {
+        "handlers_file": { "type": "string", "pattern": "(^|/)handlers\\.rs$" },
+        "operation": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+        "route_file": { "type": "string", "pattern": "(^|/)route\\.rs$" },
+        "route_handler": { "$ref": "#/$defs/RpcRouteHandler" },
+        "repository": { "type": "string", "minLength": 1 },
+        "commit_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      },
+      "dependentRequired": {
+        "route_file": ["route_handler"],
+        "route_handler": ["route_file"]
+      }
+    },
+    "RpcHttpProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "path"],
+      "properties": {
+        "method": { "$ref": "#/$defs/HttpMethod" },
+        "path": { "type": "string", "pattern": "^/" }
+      }
+    },
+    "RpcCodecSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed", "default"],
       "properties": {
         "allowed": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "enum": [
-              "json",
-              "protobuf",
-              "messagepack"
-            ]
-          }
+          "items": { "$ref": "#/$defs/RpcPayloadCodec" }
         },
-        "default": {
-          "type": "string",
-          "enum": [
-            "json",
-            "protobuf",
-            "messagepack"
-          ]
-        }
+        "default": { "$ref": "#/$defs/RpcPayloadCodec" }
       }
     },
-    "request": {
-      "$ref": "#/$defs/requestShape"
-    },
-    "response": {
-      "$ref": "#/$defs/responseShape"
-    },
-    "contract_sha256": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    }
-  },
-  "$defs": {
-    "schemaRef": {
-      "oneOf": [
-        {
-          "type": "object"
-        },
-        {
-          "type": "string",
-          "minLength": 1
-        }
-      ]
-    },
-    "requestShape": {
+    "RpcRequestShape": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "path_schema": {
-          "$ref": "#/$defs/schemaRef"
-        },
-        "query_schema": {
-          "$ref": "#/$defs/schemaRef"
-        },
-        "header_schema": {
-          "$ref": "#/$defs/schemaRef"
-        },
-        "body_schema": {
-          "$ref": "#/$defs/schemaRef"
-        }
+        "path_schema": { "$ref": "#/$defs/RpcSchemaRef" },
+        "query_schema": { "$ref": "#/$defs/RpcSchemaRef" },
+        "header_schema": { "$ref": "#/$defs/RpcSchemaRef" },
+        "body_schema": { "$ref": "#/$defs/RpcSchemaRef" }
       }
     },
-    "responseShape": {
+    "RpcResponseShape": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "header_schema": {
-          "$ref": "#/$defs/schemaRef"
+        "header_schema": { "$ref": "#/$defs/RpcSchemaRef" },
+        "trailer_schema": { "$ref": "#/$defs/RpcSchemaRef" },
+        "body_schema": { "$ref": "#/$defs/RpcSchemaRef" },
+        "error_schema": { "$ref": "#/$defs/RpcSchemaRef" }
+      }
+    },
+    "RpcOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "operation_key",
+        "namespace",
+        "source",
+        "rpc_transport_path",
+        "scope",
+        "audiences",
+        "codecs",
+        "request",
+        "response",
+        "contract_sha256"
+      ],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "operation_key": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200,
+          "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$"
         },
-        "trailer_schema": {
-          "$ref": "#/$defs/schemaRef"
+        "namespace": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/RpcNamespaceSegment" }
         },
-        "body_schema": {
-          "$ref": "#/$defs/schemaRef"
+        "source": { "$ref": "#/$defs/RpcSource" },
+        "rpc_transport_path": { "const": "/v1/rpc" },
+        "stream": { "$ref": "#/$defs/RpcStreamMode" },
+        "http": { "$ref": "#/$defs/RpcHttpProjection" },
+        "scope": { "$ref": "#/$defs/RpcScope" },
+        "audiences": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/RpcAudience" }
         },
-        "error_schema": {
-          "$ref": "#/$defs/schemaRef"
+        "codecs": { "$ref": "#/$defs/RpcCodecSet" },
+        "request": { "$ref": "#/$defs/RpcRequestShape" },
+        "response": { "$ref": "#/$defs/RpcResponseShape" },
+        "contract_sha256": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
         }
       }
     },
@@ -248,21 +179,12 @@
     "RpcErrorTransport": {
       "description": "Carrier the failed invocation arrived on. Identity only; no address, authority, path or header value is ever recorded.",
       "type": "string",
-      "enum": [
-        "rpc",
-        "http",
-        "in_process"
-      ]
+      "enum": ["rpc", "http", "in_process"]
     },
     "RpcDispatchOutcome": {
       "description": "What the guarded dispatch did. A guarded dispatch that succeeds emits no RpcErrorLogEvent at all.",
       "type": "string",
-      "enum": [
-        "error",
-        "panic",
-        "timeout",
-        "cancelled"
-      ]
+      "enum": ["error", "panic", "timeout", "cancelled"]
     },
     "RpcErrorKind": {
       "description": "Coarse, language-neutral classification of the trapped failure. Closed set so that a new kind is a contract change rather than a free-text channel.",
@@ -299,24 +221,16 @@
         "transport"
       ],
       "properties": {
-        "schema_version": {
-          "const": 1
-        },
+        "schema_version": { "const": 1 },
         "operation_key": {
           "type": "string",
           "minLength": 3,
           "maxLength": 200,
           "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$"
         },
-        "transport": {
-          "$ref": "#/$defs/RpcErrorTransport"
-        },
-        "outcome": {
-          "$ref": "#/$defs/RpcDispatchOutcome"
-        },
-        "error_kind": {
-          "$ref": "#/$defs/RpcErrorKind"
-        },
+        "transport": { "$ref": "#/$defs/RpcErrorTransport" },
+        "outcome": { "$ref": "#/$defs/RpcDispatchOutcome" },
+        "error_kind": { "$ref": "#/$defs/RpcErrorKind" },
         "error_code": {
           "description": "Stable, generator-assigned code. Never an exception message, stack, or any value derived from the request.",
           "type": "string",
@@ -328,9 +242,7 @@
           "description": "W3C trace-context trace-id for the invocation this error occurred in: 32 lowercase hex digits, not all zero. Optional, because an error can be logged outside any propagated trace. Distinct from ores_trace_id, which identifies the call site rather than the invocation.",
           "type": "string",
           "pattern": "^[0-9a-f]{32}$",
-          "not": {
-            "const": "00000000000000000000000000000000"
-          }
+          "not": { "const": "00000000000000000000000000000000" }
         },
         "re_raised": {
           "description": "True records that the trapped error was re-raised (returned unchanged, rethrown, resume_unwind-ed or re-panicked) instead of swallowed.",
@@ -340,19 +252,13 @@
           "description": "Explicit machine-checkable declaration that the event carries no payload data. Always true.",
           "const": true
         },
-        "ores_trace_id": {
-          "$ref": "#/$defs/OresTraceId"
-        },
-        "ores_routine_id": {
-          "$ref": "#/$defs/OresRoutineId"
-        },
+        "ores_trace_id": { "$ref": "#/$defs/OresTraceId" },
+        "ores_routine_id": { "$ref": "#/$defs/OresRoutineId" },
         "span_id": {
           "description": "W3C trace-context span-id for the invocation: 16 lowercase hex digits, not all zero. When present, trace_id is required.",
           "type": "string",
           "pattern": "^[0-9a-f]{16}$",
-          "not": {
-            "const": "0000000000000000"
-          }
+          "not": { "const": "0000000000000000" }
         },
         "rpc_layer": {
           "$ref": "#/$defs/RpcLayer",
@@ -360,20 +266,13 @@
         }
       },
       "dependentRequired": {
-        "span_id": [
-          "trace_id"
-        ]
+        "span_id": ["trace_id"]
       }
     },
     "RpcLayer": {
       "type": "string",
       "description": "The seam that emitted an RPC error-log event.",
-      "enum": [
-        "handler",
-        "dispatch",
-        "transport",
-        "client"
-      ]
+      "enum": ["handler", "dispatch", "transport", "client"]
     }
   }
 }

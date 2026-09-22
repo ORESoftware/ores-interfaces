@@ -1,0 +1,16 @@
+{
+  "operation": {
+    "operation_key": "demo.events.watch",
+    "endpoint": "/v1/rpc",
+    "stream_mode": "server_stream",
+    "allowed_codecs": ["json"],
+    "default_codec": "json",
+    "contract_sha256": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+  },
+  "options": {
+    "headers": {
+      "x-ores-trace-id": "trace-123"
+    }
+  },
+  "terminal": "do_stream"
+}

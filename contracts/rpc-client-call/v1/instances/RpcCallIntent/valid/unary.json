@@ -1,0 +1,18 @@
+{
+  "operation": {
+    "operation_key": "demo.health.get_version",
+    "endpoint": "/v1/rpc",
+    "stream_mode": "unary",
+    "allowed_codecs": ["json", "messagepack"],
+    "default_codec": "json",
+    "contract_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  },
+  "options": {
+    "headers": {
+      "x-ores-request-id": "req-123"
+    },
+    "timeout_ms": 5000,
+    "codec": "json"
+  },
+  "terminal": "make_call"
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "operation_key": "canonical.cloud.admin.tail_audit_log",
+  "namespace": ["canonical", "cloud", "admin"],
+  "source": {
+    "handlers_file": "src/routes/v1/admin/audit/handlers.rs",
+    "operation": "tail_audit_log"
+  },
+  "rpc_transport_path": "/v1/rpc",
+  "stream": "server_stream",
+  "scope": "admin",
+  "audiences": ["server"],
+  "codecs": { "allowed": ["json", "messagepack"], "default": "messagepack" },
+  "request": { "body_schema": "canonical.cloud.admin.TailAuditLogRequest" },
+  "response": {
+    "body_schema": "canonical.cloud.admin.AuditRecord",
+    "trailer_schema": "canonical.cloud.admin.TailSummary",
+    "error_schema": "canonical.cloud.admin.AuditError"
+  },
+  "contract_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+}

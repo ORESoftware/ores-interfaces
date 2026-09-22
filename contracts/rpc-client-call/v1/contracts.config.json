@@ -1,0 +1,9 @@
+{
+  "$comment": "Independent human-authored peer authorities. ores-cli validates this wiring; TJSV owns semantic comparison and generated schemas remain evidence only.",
+  "typespec": "main.tsp",
+  "jsonSchema": "authored.schema.json",
+  "mapping": "tjsv.mapping.json",
+  "tjsv": {
+    "sealObjectSchemas": true
+  }
+}

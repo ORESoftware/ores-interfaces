@@ -6,8 +6,10 @@ It intentionally models values and invariants, not a single object-oriented impl
 
 A generated operation starts with an `RpcOperationDescriptor`, accumulates immutable `RpcCallOptions`, and reaches the network only through a terminal action:
 
-- unary: `makeCall()` / language-idiomatic alias
-- server stream: the runtime streaming terminal (`stream` / pipeline equivalent)
+- unary: `makeCall()` / `make_call()` language-idiomatic alias
+- server stream: `doStream()` / `do_stream()` language-idiomatic alias or pipeline equivalent
+
+`doStream` is deliberately the streaming analog of `makeCall`: configuration methods remain non-terminal and perform no network I/O, while the explicit terminal opens the server stream.
 
 Headers are canonical lowercase names. `timeout_ms` and codec selection are portable call options. Runtime-only cancellation handles/signals are deliberately not serialized into this contract.
 

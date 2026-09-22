@@ -1,0 +1,14 @@
+{
+  "operation": {
+    "operation_key": "demo.health.get_version",
+    "endpoint": "/v1/rpc",
+    "stream_mode": "unary",
+    "allowed_codecs": ["json"],
+    "default_codec": "json",
+    "contract_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  },
+  "options": {
+    "headers": {}
+  },
+  "terminal": "execute"
+}

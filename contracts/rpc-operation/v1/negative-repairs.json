@@ -19,7 +19,8 @@
       "repair": "removed"
     },
     "missing-re-raised": {
-      "field": "re_raised",
+      "$comment": "Historical fixture filename retained for corpus stability; the corrected wire field is propagated.",
+      "field": "propagated",
       "repair": "replaced"
     },
     "missing-rpc-layer": {
@@ -72,6 +73,10 @@
     },
     "w3c-trace-id-not-lowercase-hex": {
       "field": "trace_id",
+      "repair": "replaced"
+    },
+    "propagated-false": {
+      "field": "propagated",
       "repair": "replaced"
     }
   }

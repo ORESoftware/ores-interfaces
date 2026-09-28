@@ -5,7 +5,7 @@
   "outcome": "timeout",
   "error_kind": "timeout",
   "error_code": "upstream_deadline_exceeded",
-  "re_raised": true,
+  "propagated": true,
   "payload_omitted": true,
   "ores_trace_id": "ores-trace-dmleVhH7q03mt0j27Ecio",
   "ores_routine_id": "ores-routine-mOVXxsGiBFuRSkcVZpszO",

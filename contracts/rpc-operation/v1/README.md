@@ -39,10 +39,7 @@ request or response body, a path or query value, a header, a `meta` object, or
 any user data, and it is a closed model (`additionalProperties: false`, and the
 TypeSpec equivalent under `--seal-object-schemas=true`), so a generator that adds
 one fails admission rather than leaking. `payload_omitted: true` states that rule
-positively so a consumer can assert it rather than infer it. `re_raised` records
-that the trapped error was re-raised — returned unchanged, rethrown,
-`resume_unwind`-ed or re-panicked — instead of swallowed. Both property names use
-this contract's snake_case wire convention.
+positively so a consumer can assert it rather than infer it. `propagated: true` states the failure-propagation invariant directly: telemetry observation never consumes or hides the failure. The same value applies when this seam originates the failure and returns it, and when it observes a lower-layer failure and continues it through its intended path.
 
 ## Instance corpus
 
@@ -208,3 +205,7 @@ now `headers-field` and `meta-field`. Every negative has a
 `valid/repaired-<name>.json` differing in the one field `negative-repairs.json`
 names, so "rejected for the rule in its filename" is checked rather than
 assumed.
+
+### `re_raised` → `propagated` (failure continuation)
+
+The original boolean described only the history of an already-trapped lower-layer error, but `rpc_layer = transport` also admits failures originated at the transport boundary itself. This in-place correction replaces that ambiguous control-flow claim with required literal `propagated: true`: an admitted event can never describe telemetry swallowing the failure. Whether the failure originated at this seam or was observed from below is intentionally not overloaded onto this field.

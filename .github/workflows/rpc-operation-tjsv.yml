@@ -130,7 +130,7 @@ jobs:
             'error_kind', 'error_code',
             'ores_trace_id', 'ores_routine_id',
             'trace_id', 'span_id', 'rpc_layer',
-            're_raised', 'payload_omitted',
+            'propagated', 'payload_omitted',
           ]);
           for (const name of Object.keys(event.properties ?? {})) {
             if (!allowed.has(name))
@@ -155,7 +155,8 @@ jobs:
           }
 
           if (event.properties?.payload_omitted?.const !== true) throw new Error('payload_omitted must be const true');
-          for (const required of ['schema_version', 'operation_key', 'transport', 'outcome', 'error_kind', 'error_code', 'ores_trace_id', 'rpc_layer', 're_raised', 'payload_omitted'])
+          if (event.properties?.propagated?.const !== true) throw new Error('propagated must be const true');
+          for (const required of ['schema_version', 'operation_key', 'transport', 'outcome', 'error_kind', 'error_code', 'ores_trace_id', 'rpc_layer', 'propagated', 'payload_omitted'])
             if (!(event.required ?? []).includes(required)) throw new Error(`RpcErrorLogEvent must require ${required}`);
           for (const optional of ['ores_routine_id', 'trace_id', 'span_id'])
             if ((event.required ?? []).includes(optional)) throw new Error(`${optional} must stay optional`);

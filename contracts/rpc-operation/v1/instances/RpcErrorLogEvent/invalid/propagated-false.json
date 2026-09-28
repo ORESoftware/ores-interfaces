@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "operation_key": "rpc.transport.decode",
+  "transport": "rpc",
+  "outcome": "error",
+  "error_kind": "codec",
+  "error_code": "rpc.envelope_invalid",
+  "ores_trace_id": "ores-trace-uXOkCvZNc9WidUlNR7Pvn",
+  "rpc_layer": "transport",
+  "propagated": false,
+  "payload_omitted": true
+}

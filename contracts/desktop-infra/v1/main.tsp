@@ -58,8 +58,6 @@ model ServiceSpec {
   hot_reloadable: boolean;
 }
 
-model Labels is Record<string>;
-
 model DesiredState {
   @minLength(1)
   product_id: string;
@@ -70,5 +68,5 @@ model DesiredState {
   route_authority: RouteAuthority;
   routes: RouteSpec[];
   services: ServiceSpec[];
-  labels: Labels;
+  labels: Record<string>;
 }

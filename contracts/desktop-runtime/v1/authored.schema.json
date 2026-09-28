@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oresoftware.com/schemas/desktop-runtime/v1",
+  "title": "DesktopRuntimeFleetV1",
+  "$defs": {
+    "ProductId": {
+      "type": "string",
+      "enum": [
+        "iso-lattes",
+        "pony-expres",
+        "lunatic-lorry",
+        "graal-show",
+        "scintilla",
+        "wasm-xprs",
+        "indiebuild",
+        "beamscale"
+      ]
+    },
+    "ReuseModel": {
+      "type": "string",
+      "enum": [
+        "tenant_generation_cell",
+        "fresh_process",
+        "fresh_actor",
+        "fresh_store",
+        "runtime_managed",
+        "delegated"
+      ]
+    },
+    "DaemonPort": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535
+    },
+    "ClientResponseByteLimit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 16777216
+    },
+    "ClientSecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "local_bearer_only",
+        "literal_loopback_http",
+        "explicit_port",
+        "redirects_allowed",
+        "max_response_bytes",
+        "token_file_regular_non_symlink",
+        "token_file_private_on_unix"
+      ],
+      "properties": {
+        "local_bearer_only": { "const": true },
+        "literal_loopback_http": { "const": true },
+        "explicit_port": { "const": true },
+        "redirects_allowed": { "const": false },
+        "max_response_bytes": { "$ref": "#/$defs/ClientResponseByteLimit" },
+        "token_file_regular_non_symlink": { "const": true },
+        "token_file_private_on_unix": { "const": true }
+      }
+    },
+    "ExecutionContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reuse_model",
+        "reuse_key",
+        "runtime_host_reuse_allowed",
+        "direct_worker_launch_from_client",
+        "delegates_to"
+      ],
+      "properties": {
+        "reuse_model": { "$ref": "#/$defs/ReuseModel" },
+        "reuse_key": {
+          "type": "array",
+          "maxItems": 2,
+          "items": { "type": "string" }
+        },
+        "runtime_host_reuse_allowed": { "type": "boolean" },
+        "direct_worker_launch_from_client": { "const": false },
+        "delegates_to": {
+          "anyOf": [
+            { "$ref": "#/$defs/ProductId" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "RuntimeContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product_id",
+        "org",
+        "daemon_port",
+        "client_security",
+        "execution"
+      ],
+      "properties": {
+        "product_id": { "$ref": "#/$defs/ProductId" },
+        "org": { "type": "string", "minLength": 1 },
+        "daemon_port": { "$ref": "#/$defs/DaemonPort" },
+        "client_security": { "$ref": "#/$defs/ClientSecurity" },
+        "execution": { "$ref": "#/$defs/ExecutionContract" }
+      }
+    },
+    "RuntimeContractDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "contracts"],
+      "properties": {
+        "schema": { "const": "ores.desktop-runtime-contracts/v1" },
+        "contracts": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/RuntimeContract" }
+        }
+      }
+    }
+  },
+  "$ref": "#/$defs/RuntimeContractDocument"
+}

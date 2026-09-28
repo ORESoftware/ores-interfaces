@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oresoftware.com/schemas/desktop-cli/v1",
+  "title": "DesktopCliV1",
+  "$defs": {
+    "LifecycleCommand": {
+      "type": "string",
+      "enum": ["doctor", "status", "plan", "up", "down", "reload", "update", "rollback", "routes", "logs", "deploy"]
+    },
+    "RouteDiscoveryMode": {
+      "type": "string",
+      "enum": ["compose_authority", "compose_and_build_metadata"]
+    },
+    "DocsGenerationMode": {
+      "type": "string",
+      "enum": ["disabled", "consumer_owned"]
+    },
+    "GitObjectId": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{40}([0-9a-fA-F]{24})?$"
+    },
+    "ComposeFileName": {
+      "type": "string",
+      "enum": [".ores-compose.yaml", "ores-compose.yaml"]
+    },
+    "GitRepositorySource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "repository", "revision"],
+      "properties": {
+        "kind": { "const": "git_repository" },
+        "repository": { "type": "string", "minLength": 1 },
+        "revision": { "$ref": "#/$defs/GitObjectId" },
+        "subdir": { "type": "string", "minLength": 1 }
+      }
+    },
+    "GitHubOrganizationSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "organization"],
+      "properties": {
+        "kind": { "const": "github_organization" },
+        "organization": { "type": "string", "minLength": 1 },
+        "repository_filter": { "type": "string", "minLength": 1 },
+        "revision": { "type": "string", "minLength": 1 }
+      }
+    },
+    "LocalFolderSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "path"],
+      "properties": {
+        "kind": { "const": "local_folder" },
+        "path": { "type": "string", "minLength": 1 }
+      }
+    },
+    "DeploySource": {
+      "oneOf": [
+        { "$ref": "#/$defs/GitRepositorySource" },
+        { "$ref": "#/$defs/GitHubOrganizationSource" },
+        { "$ref": "#/$defs/LocalFolderSource" }
+      ]
+    },
+    "DeployRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "compose_file", "route_discovery", "docs_generation"],
+      "properties": {
+        "source": { "$ref": "#/$defs/DeploySource" },
+        "compose_file": { "$ref": "#/$defs/ComposeFileName" },
+        "route_discovery": { "$ref": "#/$defs/RouteDiscoveryMode" },
+        "docs_generation": { "$ref": "#/$defs/DocsGenerationMode" },
+        "api_docs_revision": { "$ref": "#/$defs/GitObjectId" }
+      }
+    },
+    "ControlPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": { "const": "deploy" },
+        "value": { "$ref": "#/$defs/DeployRequest" }
+      }
+    },
+    "ControlRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id", "product_id", "command"],
+      "properties": {
+        "request_id": { "type": "string", "minLength": 1 },
+        "product_id": { "type": "string", "minLength": 1 },
+        "command": { "$ref": "#/$defs/LifecycleCommand" },
+        "generation": { "type": "integer", "minimum": 1 },
+        "payload": { "$ref": "#/$defs/ControlPayload" }
+      }
+    },
+    "ControlResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id", "accepted"],
+      "properties": {
+        "request_id": { "type": "string", "minLength": 1 },
+        "accepted": { "type": "boolean" },
+        "generation": { "type": "integer", "minimum": 1 },
+        "message": { "type": "string" }
+      }
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/DeployRequest" },
+    { "$ref": "#/$defs/ControlRequest" },
+    { "$ref": "#/$defs/ControlResponse" }
+  ]
+}

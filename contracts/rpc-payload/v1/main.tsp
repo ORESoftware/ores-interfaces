@@ -20,11 +20,18 @@ enum TransportFraming {
 model RpcPayloadPolicyV1 {
   schema: "ores.rpc-payload-policy/v1";
   default_codec: PayloadCodec;
+
+  @minItems(1)
+  @maxItems(5)
+  @uniqueItems
   allowed_codecs: PayloadCodec[];
+
   framing: TransportFraming;
+
   @minValue(1)
   @maxValue(16777216)
   max_encoded_bytes: uint32;
+
   @minValue(1)
   @maxValue(67108864)
   max_decoded_bytes: uint32;

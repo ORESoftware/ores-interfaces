@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ORESoftware/ores-interfaces/raw/main/contracts/additive-contracts/v1/authored.schema.json",
+  "$defs": {
+    "Sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "AdditiveArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "source_path",
+        "source_sha256"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "protobuf",
+            "wit",
+            "dafny"
+          ]
+        },
+        "source_path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "source_sha256": {
+          "$ref": "#/$defs/Sha256"
+        }
+      }
+    },
+    "AdditiveContractManifestV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "artifacts"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ores.additive-contract-manifest/v1"
+        },
+        "artifacts": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "$ref": "#/$defs/AdditiveArtifact"
+          }
+        }
+      }
+    },
+    "AdditiveVerificationReceiptV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "status",
+        "manifest_sha256",
+        "verifier_sha256",
+        "artifact_count"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ores.additive-contract-receipt/v1"
+        },
+        "status": {
+          "enum": [
+            "passed",
+            "failed",
+            "partial"
+          ]
+        },
+        "manifest_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "verifier_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "artifact_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4096
+        }
+      }
+    }
+  }
+}

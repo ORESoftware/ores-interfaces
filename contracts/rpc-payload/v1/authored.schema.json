@@ -1,22 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/ORESoftware/ores-interfaces/raw/main/contracts/rpc-payload/v1/authored.schema.json",
-  "title": "ORES RPC payload policy v1",
-  "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "schema",
-    "default_codec",
-    "allowed_codecs",
-    "framing",
-    "max_encoded_bytes",
-    "max_decoded_bytes"
-  ],
-  "properties": {
-    "schema": {
-      "const": "ores.rpc-payload-policy/v1"
-    },
-    "default_codec": {
+  "$defs": {
+    "PayloadCodec": {
+      "type": "string",
       "enum": [
         "json",
         "messagepack",
@@ -25,37 +12,56 @@
         "raw"
       ]
     },
-    "allowed_codecs": {
-      "type": "array",
-      "minItems": 1,
-      "maxItems": 5,
-      "uniqueItems": true,
-      "items": {
-        "enum": [
-          "json",
-          "messagepack",
-          "cbor",
-          "protobuf",
-          "raw"
-        ]
-      }
-    },
-    "framing": {
+    "TransportFraming": {
+      "type": "string",
       "enum": [
         "http_body",
         "tcp_length_delimited",
         "websocket_message"
       ]
     },
-    "max_encoded_bytes": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 16777216
-    },
-    "max_decoded_bytes": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 67108864
+    "RpcPayloadPolicyV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "default_codec",
+        "allowed_codecs",
+        "framing",
+        "max_encoded_bytes",
+        "max_decoded_bytes"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ores.rpc-payload-policy/v1"
+        },
+        "default_codec": {
+          "$ref": "#/$defs/PayloadCodec"
+        },
+        "allowed_codecs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/PayloadCodec"
+          }
+        },
+        "framing": {
+          "$ref": "#/$defs/TransportFraming"
+        },
+        "max_encoded_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777216
+        },
+        "max_decoded_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 67108864
+        }
+      }
     }
-  }
+  },
+  "$ref": "#/$defs/RpcPayloadPolicyV1"
 }

@@ -1,0 +1,24 @@
+name: Contract peer admission
+
+on:
+  pull_request:
+    paths:
+      - 'contracts/**'
+      - '.github/workflows/contract-peer-admission.yml'
+      - '.github/workflows/polyglot-contract-admission.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'contracts/**'
+      - '.github/workflows/contract-peer-admission.yml'
+      - '.github/workflows/polyglot-contract-admission.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  admission:
+    uses: ./.github/workflows/polyglot-contract-admission.yml
+    with:
+      minimum_pairs: 1

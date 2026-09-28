@@ -17,21 +17,21 @@
     "HeaderMap": {
       "type": "object",
       "properties": {},
-      "additionalProperties": { "type": "string" },
-      "unevaluatedProperties": false
+      "unevaluatedProperties": { "type": "string" }
     },
     "JsonObjectMap": {
       "type": "object",
+      "properties": {},
+      "unevaluatedProperties": {},
       "x-ores-json": true
     },
     "QueryMap": {
       "type": "object",
       "properties": {},
-      "additionalProperties": {
+      "unevaluatedProperties": {
         "type": "array",
         "items": { "type": "string" }
-      },
-      "unevaluatedProperties": false
+      }
     },
     "RequestAttributes": {
       "type": "object",

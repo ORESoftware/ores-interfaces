@@ -8,6 +8,14 @@
       "maxLength": 64,
       "pattern": "^[0-9a-f]{64}$"
     },
+    "AdditiveKind": {
+      "type": "string",
+      "enum": [
+        "protobuf",
+        "wit",
+        "dafny"
+      ]
+    },
     "AdditiveArtifact": {
       "type": "object",
       "additionalProperties": false,
@@ -18,11 +26,7 @@
       ],
       "properties": {
         "kind": {
-          "enum": [
-            "protobuf",
-            "wit",
-            "dafny"
-          ]
+          "$ref": "#/$defs/AdditiveKind"
         },
         "source_path": {
           "type": "string",

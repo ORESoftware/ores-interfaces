@@ -7,8 +7,7 @@
     "HeaderMap": {
       "type": "object",
       "properties": {},
-      "additionalProperties": { "type": "string" },
-      "unevaluatedProperties": false
+      "unevaluatedProperties": { "type": "string" }
     },
     "RpcPayloadCodec": {
       "type": "string",

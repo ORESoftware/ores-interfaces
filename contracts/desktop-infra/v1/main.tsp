@@ -14,9 +14,9 @@ enum RouteAuthority {
   rust,
 }
 
-union LoopbackHost {
-  "127.0.0.1",
-  "::1",
+enum LoopbackHost {
+  ipv4: "127.0.0.1",
+  ipv6: "::1",
 }
 
 model RouteTarget {
@@ -58,10 +58,6 @@ model ServiceSpec {
   hot_reloadable: boolean;
 }
 
-model Labels {
-  [key: string]: string;
-}
-
 model DesiredState {
   @minLength(1)
   product_id: string;
@@ -72,5 +68,5 @@ model DesiredState {
   route_authority: RouteAuthority;
   routes: RouteSpec[];
   services: ServiceSpec[];
-  labels: Labels;
+  labels: Record<string>;
 }

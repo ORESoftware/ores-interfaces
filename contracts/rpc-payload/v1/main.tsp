@@ -28,6 +28,8 @@ model RpcPayloadPolicyV1 {
 
   framing: TransportFraming;
 
+  preserve_opaque_bytes: boolean;
+
   @minValue(1)
   @maxValue(16777216)
   max_encoded_bytes: uint32;

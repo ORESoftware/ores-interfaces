@@ -9,6 +9,9 @@
  * This TypeSpec source and authored.schema.json are independent peer
  * authorities. Neither may be generated from the other to force parity.
  */
+import "@typespec/json-schema";
+using TypeSpec.JsonSchema;
+
 namespace Ores.Interfaces.RpcClientCall.V1;
 
 /** Canonical lowercase HTTP header names mapped to unfolded string values. */
@@ -35,11 +38,21 @@ enum RpcCallTerminal {
 
 /** Stable, product-neutral descriptor embedded by generated client code. */
 model RpcOperationDescriptor {
+  @minLength(1)
   operation_key: string;
+
+  @pattern("^/")
   endpoint: string;
+
   stream_mode: RpcStreamMode;
+
+  @minItems(1)
+  @uniqueItems
   allowed_codecs: RpcPayloadCodec[];
+
   default_codec: RpcPayloadCodec;
+
+  @pattern("^[0-9a-fA-F]{64}$")
   contract_sha256: string;
 }
 

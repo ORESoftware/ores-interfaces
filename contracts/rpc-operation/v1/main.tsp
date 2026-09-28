@@ -228,7 +228,7 @@ enum RpcErrorKind {
 }
 
 /**
- * The single telemetry event a guarded RPC dispatch emits before re-raising.
+ * The single telemetry event a guarded RPC boundary emits before propagating the failure.
  *
  * Deliberately payload-free: it carries operation identity, carrier, outcome,
  * error classification and the static correlation ids, and nothing else. There is
@@ -298,11 +298,12 @@ model RpcErrorLogEvent {
   rpc_layer: RpcLayer;
 
   /**
-   * Records that the trapped error was re-raised (returned, rethrown,
-   * `resume_unwind`-ed, re-panicked) rather than swallowed. Named `re_raised` to
-   * match this contract's snake_case wire convention.
+   * Machine-checkable guarantee that telemetry observation did not consume or
+   * hide the failure. This is true both when this seam originates a failure and
+   * returns it to its caller and when it observes a lower-layer failure and
+   * continues that failure through the intended propagation path.
    */
-  re_raised: boolean;
+  propagated: true;
 
   /**
    * Explicit, machine-checkable declaration that no payload data travels with the

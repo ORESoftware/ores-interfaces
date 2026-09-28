@@ -1,0 +1,5 @@
+{
+  "$comment": "Independent human-authored peer authorities. TJSV owns semantic comparison; generated Schema B and language projections remain evidence only.",
+  "typespec": "main.tsp",
+  "jsonSchema": "authored.schema.json"
+}

@@ -45,6 +45,10 @@
         "hot_reloadable": { "type": "boolean" }
       }
     },
+    "Labels": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
     "DesiredState": {
       "type": "object",
       "additionalProperties": false,
@@ -55,7 +59,7 @@
         "route_authority": { "$ref": "#/$defs/RouteAuthority" },
         "routes": { "type": "array", "items": { "$ref": "#/$defs/RouteSpec" } },
         "services": { "type": "array", "items": { "$ref": "#/$defs/ServiceSpec" } },
-        "labels": { "type": "object", "additionalProperties": { "type": "string" } }
+        "labels": { "$ref": "#/$defs/Labels" }
       }
     }
   },

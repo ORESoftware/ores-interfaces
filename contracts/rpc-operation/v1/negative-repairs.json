@@ -74,6 +74,10 @@
     "w3c-trace-id-not-lowercase-hex": {
       "field": "trace_id",
       "repair": "replaced"
+    },
+    "propagated-false": {
+      "field": "propagated",
+      "repair": "replaced"
     }
   }
 }

@@ -11,7 +11,7 @@ using TypeSpec.JsonSchema;
 
 namespace Ores.Desktop.Runtime.V1;
 
-union ProductId {
+enum ProductId {
   iso_lattes: "iso-lattes",
   pony_expres: "pony-expres",
   lunatic_lorry: "lunatic-lorry",
@@ -22,7 +22,7 @@ union ProductId {
   beamscale: "beamscale",
 }
 
-union ReuseModel {
+enum ReuseModel {
   tenant_generation_cell: "tenant_generation_cell",
   fresh_process: "fresh_process",
   fresh_actor: "fresh_actor",

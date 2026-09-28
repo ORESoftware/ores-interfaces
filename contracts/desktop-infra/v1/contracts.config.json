@@ -1,5 +1,6 @@
 {
-  "$comment": "Independent human-authored peer authorities. TJSV owns semantic comparison; generated Schema B and language projections remain evidence only.",
+  "$comment": "Independent human-authored peer authorities. TJSV owns semantic comparison; generated Schema B and language projections remain evidence only. RecordString is a TypeSpec emitter helper for Record<string>, not a third semantic authority.",
   "typespec": "main.tsp",
-  "jsonSchema": "authored.schema.json"
+  "jsonSchema": "authored.schema.json",
+  "mapping": "tjsv.mapping.json"
 }

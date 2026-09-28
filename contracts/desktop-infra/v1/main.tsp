@@ -58,9 +58,7 @@ model ServiceSpec {
   hot_reloadable: boolean;
 }
 
-model Labels {
-  [key: string]: string;
-}
+model Labels is Record<string>;
 
 model DesiredState {
   @minLength(1)

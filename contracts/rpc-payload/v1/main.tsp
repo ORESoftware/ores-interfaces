@@ -29,6 +29,8 @@ model RpcPayloadPolicyV1 {
   framing: TransportFraming;
 
   preserve_opaque_bytes: boolean;
+  semantic_validation_after_decode: true;
+  raw_requires_explicit_binary_semantics: true;
 
   @minValue(1)
   @maxValue(16777216)

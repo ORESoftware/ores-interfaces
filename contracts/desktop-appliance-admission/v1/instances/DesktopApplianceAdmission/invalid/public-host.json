@@ -1,0 +1,17 @@
+{
+  "schema": "ores.desktop-appliance-admission/v1",
+  "product": "fixture",
+  "channel": "candidate",
+  "common_layer": {
+    "repository": "ORESoftware/ores-common-desktop-infra",
+    "checkout_dir": "tmp/dev/ores-common-desktop-infra",
+    "status": "pinned",
+    "revision": "0123456789abcdef0123456789abcdef01234567",
+    "capabilities": ["consumer-validation"]
+  },
+  "orchestrator": {"engine": "ores-compose", "config": ".ores-compose.yaml"},
+  "host": {"daemon_host": "0.0.0.0", "daemon_port": 8765, "requires_public_ip": true},
+  "cloudflare": {"mode": "gated", "credentials_in_repo": false, "origin_auth": "dedicated-remote-auth-required"},
+  "update": {"mode": "exact-revision", "allow_mutable_latest": false},
+  "promotion_gates": {"common_layer_pinned": true, "common_layer_ci_verified": false}
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "ores.desktop-appliance-admission/v1",
+  "product": "fixture",
+  "channel": "stable",
+  "common_layer": {
+    "repository": "ORESoftware/ores-common-desktop-infra",
+    "checkout_dir": "tmp/dev/ores-common-desktop-infra",
+    "status": "pinned",
+    "revision": "fedcba9876543210fedcba9876543210fedcba98",
+    "capabilities": ["consumer-validation", "cloudflare-policy", "update-policy"]
+  },
+  "orchestrator": {
+    "engine": "ores-compose",
+    "config": ".ores-compose.yaml"
+  },
+  "host": {
+    "daemon_host": "127.0.0.1",
+    "daemon_port": 9443,
+    "requires_public_ip": false
+  },
+  "cloudflare": {
+    "mode": "remotely-managed",
+    "credentials_in_repo": false,
+    "origin_auth": "dedicated-remote-auth",
+    "token_source": "file",
+    "token_file_env": "CLOUDFLARE_TUNNEL_TOKEN_FILE",
+    "hostname_env": "CLOUDFLARE_HOSTNAME"
+  },
+  "update": {
+    "mode": "exact-revision",
+    "allow_mutable_latest": false
+  },
+  "promotion_gates": {
+    "common_layer_pinned": true,
+    "common_layer_ci_verified": true
+  }
+}

@@ -30,7 +30,9 @@
         "framing",
         "max_encoded_bytes",
         "max_decoded_bytes",
-        "preserve_opaque_bytes"
+        "preserve_opaque_bytes",
+        "semantic_validation_after_decode",
+        "raw_requires_explicit_binary_semantics"
       ],
       "properties": {
         "schema": {
@@ -63,6 +65,12 @@
         },
         "preserve_opaque_bytes": {
           "type": "boolean"
+        },
+        "semantic_validation_after_decode": {
+          "const": true
+        },
+        "raw_requires_explicit_binary_semantics": {
+          "const": true
         }
       }
     }

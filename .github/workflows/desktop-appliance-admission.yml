@@ -1,0 +1,72 @@
+name: desktop appliance admission contract
+
+on:
+  pull_request:
+    paths:
+      - 'contracts/desktop-appliance-admission/**'
+      - '.github/workflows/desktop-appliance-admission.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'contracts/desktop-appliance-admission/**'
+      - '.github/workflows/desktop-appliance-admission.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-appliance-admission-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  admission:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          show-progress: false
+      - name: Verify exact candidate
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - name: Check out reviewed TJSV
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ORESoftware/typespec-json-schema-validator
+          ref: bfe9667cc6ac8863d436587d8125c4eb66ddd647
+          path: .deps/tjsv
+          persist-credentials: false
+          show-progress: false
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22.16.0'
+          package-manager-cache: false
+      - name: Install locked TJSV toolchain
+        run: npm ci --prefix .deps/tjsv --no-audit --no-fund
+      - name: Admit both authored authorities and fixtures
+        run: |
+          mkdir -p tmp/desktop-appliance-admission
+          node .deps/tjsv/bin/typespec-json-schema-validator.mjs check             --typespec=contracts/desktop-appliance-admission/v1/main.tsp             --schema=contracts/desktop-appliance-admission/v1/authored.schema.json             --instances=contracts/desktop-appliance-admission/v1/instances             --report=tmp/desktop-appliance-admission/report.json             --sarif=tmp/desktop-appliance-admission/report.sarif             --contract-ir=tmp/desktop-appliance-admission/contract-ir.json             --output-dir=tmp/desktop-appliance-admission/generated             --max-probes=128             --int64-strategy=string             --seal-object-schemas=true             --polymorphic-models-strategy=oneOf
+      - name: Require clean admission evidence
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const report = JSON.parse(readFileSync('tmp/desktop-appliance-admission/report.json', 'utf8'));
+          if (report.status !== 'passed') throw new Error(`TJSV status=${report.status}`);
+          if ((report.findings ?? []).length) throw new Error('unexpected TJSV findings');
+          if ((report?.differential?.refusals ?? 0) !== 0) throw new Error('differential validator refused evidence');
+          NODE
+      - name: Retain admission evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: desktop-appliance-admission-${{ github.event.pull_request.head.sha || github.sha }}
+          path: tmp/desktop-appliance-admission/
+          if-no-files-found: error
+          retention-days: 30

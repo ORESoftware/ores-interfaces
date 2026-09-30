@@ -9,12 +9,35 @@
     "wireAndRuntimeConformance": {
       "repository": "ORESoftware/typespec-json-schema-validator",
       "commit": "a9db1298cd4c993744a7b24bbc8f0ae9d1d0a33a",
-      "requiredFor": ["wire-parity", "contract-ir", "runtime-conformance"]
+      "requiredFor": [
+        "wire-parity",
+        "contract-ir",
+        "runtime-conformance"
+      ]
     },
     "persistenceConvergence": {
       "repository": "ORESoftware/ores-contracts",
       "commit": "c02bd2cd2f057b5384b50cb39ddda3dd926a4ca5",
-      "requiredFor": ["declared-persistence-subset"]
+      "requiredFor": [
+        "declared-persistence-subset"
+      ]
+    },
+    "witProjectionCompatibility": {
+      "repository": "ORESoftware/typespec-json-schema-validator",
+      "commit": "5ff1051c5aab84971abe3887dd5ecfa56e69a16e",
+      "export": "@oresoftware/typespec-json-schema-validator/wit-compatibility",
+      "cli": "tjsv verify-wit",
+      "role": "downstream-projection-evidence-only",
+      "requiredFor": [
+        "wit-projection-compatibility",
+        "native-sdk-contract-evidence",
+        "component-sdk-promotion"
+      ],
+      "defaultMode": "strict",
+      "targets": [
+        "native-sdk",
+        "wasm-component"
+      ]
     }
   },
   "orchestrator": {

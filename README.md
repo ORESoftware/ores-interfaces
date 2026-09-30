@@ -16,7 +16,7 @@ Pure transport/value contracts stay persistence-neutral. Contract families that 
 
 Runtime conformance is separate from code generation. Reviewed fixture corpora stay with the contract family; isolated language/runtime adapters produce verdicts only; TJSV's runtime-conformance protocol binds those verdicts to the exact Contract IR, parity receipt, and corpus digest.
 
-WIT is a downstream execution/interface projection, not an authored peer. The registry pins TJSV's WIT compatibility API/CLI by exact commit. Raw `.wit` parsing, canonical formatting, Contract-IR-to-WIT emission, component-model tooling, and language binding generation belong in `ORESoftware/ores-wit`; normalized WIT projections and compatibility receipts are retained evidence. Until `ores-wit` is itself pinned here by an immutable reviewed revision, consumers must not treat an unversioned clone or `main` as release evidence.
+WIT is a downstream execution/interface projection, not an authored peer. The registry pins TJSV's WIT compatibility API/CLI by exact commit. Raw `.wit` parsing, canonical formatting, Contract-IR-to-WIT emission, component-model tooling, and language binding generation belong in `ORESoftware/ores-wit`; normalized WIT projections and compatibility receipts are retained evidence. WIT may drive or verify native Rust/Go/Java/Dart/TypeScript/etc. SDK surfaces without introducing a Wasm runtime dependency; Component Model execution is an additional target, not a prerequisite. Until `ores-wit` is itself pinned here by an immutable reviewed revision, consumers must not treat an unversioned clone or `main` as release evidence.
 
 ### Legacy compatibility package
 

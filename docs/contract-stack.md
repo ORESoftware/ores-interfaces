@@ -10,6 +10,7 @@ This repository participates in a four-layer contract stack. The layers are inte
 | Wire/schema admission | `ORESoftware/typespec-json-schema-validator` (TJSV) | Prove independently authored TypeSpec and JSON Schema agree on the admitted wire/runtime shape; produce Contract IR, parity receipts, projection evidence, and fail-closed findings. | A third editable contract authority or product/domain schema owner. |
 | Persistence/codegen convergence | `ORESoftware/ores-contracts` | For contract families that opt into its supported persistence subset, parse both authored peers independently, compare normalized persistence semantics, and emit byte-parity SQL/ORM/language witnesses. | Fleet contract registry, runtime conformance adjudicator, or replacement for TJSV. |
 | Runtime conformance | TJSV runtime-conformance protocol + isolated consumer/runtime adapters | Bind exact admitted Contract IR and parity receipts to a reviewed fixture corpus, execute language/runtime adapters, and make the final fail-closed conformance decision. | Editable authority, generated expectation source, or persistence migration engine. |
+| WIT projection/tooling | TJSV WIT compatibility gate + `ORESoftware/ores-wit` | Treat WIT as a generated execution/interface projection; TJSV compares normalized released/current projections while `ores-wit` owns raw WIT parsing/formatting/emission and component binding tooling. | A third authored authority or a reason to overwrite TypeSpec/JSON Schema. |
 
 `ORESoftware/ores-cli` is the fleet orchestrator. It resolves immutable dependency identities from the zed-pkg graph, invokes the appropriate gates, and reports policy violations. Runtime libraries must not depend on `ores-cli`.
 
@@ -45,7 +46,8 @@ Every new or migrated contract family follows this order:
 2. **Run TJSV first.** TJSV validates source closure, emits/generated Schema B only as evidence, compares the authored JSON Schema peer, and produces the Contract IR/parity receipt. Any unexplained finding stops promotion.
 3. **Run `ores-contracts` only when persistence semantics are declared.** A contract that uses tables, keys, indexes, references, or another supported persistence projection must also pass the `ores-contracts` independent-parser/byte-parity gate. Pure transport/value contracts do not acquire fake tables merely to satisfy this tool.
 4. **Run runtime conformance when implementations exist.** The fixture corpus belongs with the authored contract family. Isolated adapters return verdicts only. TJSV's runtime-conformance decision code binds those verdicts to the exact Contract IR, parity receipt, and corpus digest.
-5. **Promote generated outputs as evidence.** Generated Rust, Dart, TypeScript, SQL, SeaORM, Diesel, Protobuf/OpenAPI projections, receipts, and conformance reports are reproducible evidence. They are never editable authority.
+5. **Gate WIT compatibility when WIT is emitted.** Generate WIT only from admitted IR, normalize it deterministically, compare it to the retained released baseline with `tjsv verify-wit`, and compile generated bindings where the language/runtime supports the component model. WIT never replaces the authored TypeSpec or JSON Schema peers.
+6. **Promote generated outputs as evidence.** Generated Rust, Dart, TypeScript, SQL, SeaORM, Diesel, Protobuf/OpenAPI/WIT projections, receipts, and conformance reports are reproducible evidence. They are never editable authority.
 
 ## Correcting an admitted family
 
@@ -124,6 +126,7 @@ No migration step changes the rule that TypeSpec and JSON Schema are peer author
 
 - TJSV is the only generic TypeSpec-versus-JSON-Schema wire parity engine.
 - TJSV runtime-conformance is the only generic cross-runtime evidence/decision protocol.
+- TJSV owns normalized WIT compatibility evidence; `ores-wit` owns raw WIT syntax/toolchain operations and binding generation. Neither becomes an authored contract authority.
 - `ores-contracts` is the only generic persistence/codegen convergence engine for the supported ORES persistence subset.
 - `ores-interfaces` is the fleet-wide source registry only for genuinely shared semantic contracts; product/domain authorities remain in their owning `*-interfaces` repositories.
 - `ores-cli` coordinates policy and resolved versions; it does not become a parser or runtime dependency.

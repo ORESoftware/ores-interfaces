@@ -136,7 +136,8 @@ No migration step changes the rule that TypeSpec and JSON Schema are peer author
 
 At the time this boundary was reconciled, the current compatible tool revisions were:
 
-- `ORESoftware/typespec-json-schema-validator@dd3418aa243198619abfd6106cea3540ef0bbb4f`
+- `ORESoftware/typespec-json-schema-validator@dd3418aa243198619abfd6106cea3540ef0bbb4f` for the broader wire/runtime compatibility witness
+- `ORESoftware/typespec-json-schema-validator@71c1282ebe3d50e4dd029f5515538a797e70558d` for hardened WIT projection compatibility (strict-default, canonical Component Model package-version lines, case-insensitive WIT identifiers, bounded-but-accurate finding evidence, and generation-context binding)
 - `ORESoftware/ores-contracts@fef0b716d950f717c240504bd85d6f1732a383a0`
 
 These hashes are evidence of one reviewed integration state, not permanent version policy. Fleet execution must use the immutable versions resolved by zed-pkg / repository policy for the exact consumer revision being admitted.

@@ -27,7 +27,7 @@ test('contract stack separates authority, conformance and persistence convergenc
 
   const wit = stack.tools.witProjectionCompatibility;
   assert.equal(wit.repository, 'ORESoftware/typespec-json-schema-validator');
-  assert.equal(wit.commit, '5ff1051c5aab84971abe3887dd5ecfa56e69a16e');
+  assert.equal(wit.commit, '71c1282ebe3d50e4dd029f5515538a797e70558d');
   assert.match(wit.commit, immutableSha);
   assert.equal(wit.export, '@oresoftware/typespec-json-schema-validator/wit-compatibility');
   assert.equal(wit.cli, 'tjsv verify-wit');

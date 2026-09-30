@@ -24,7 +24,7 @@
     },
     "witProjectionCompatibility": {
       "repository": "ORESoftware/typespec-json-schema-validator",
-      "commit": "5ff1051c5aab84971abe3887dd5ecfa56e69a16e",
+      "commit": "71c1282ebe3d50e4dd029f5515538a797e70558d",
       "export": "@oresoftware/typespec-json-schema-validator/wit-compatibility",
       "cli": "tjsv verify-wit",
       "role": "downstream-projection-evidence-only",

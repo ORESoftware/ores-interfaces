@@ -1,0 +1,27 @@
+{
+  "schema": "ores.desktop.daemon.operational-snapshot/v1",
+  "product_id": "example-desktop-runtime",
+  "runtime_kind": "native",
+  "observed_at": "2026-09-30T00:00:00Z",
+  "sequence": 42,
+  "readiness": {
+    "overall": "ready",
+    "components": [
+      {"id": "control_plane", "desired": true, "running": true, "ready": true},
+      {"id": "local_ingress", "desired": true, "running": true, "ready": true}
+    ]
+  },
+  "workers": {"desired": 2, "running": 2, "ready": 2, "failed": 0},
+  "jobs": {"queued": 0, "running": 1, "failed": 0, "last_terminal_id": "job-0041"},
+  "resources": {"cpu_percent": 12.5, "memory_bytes": 268435456, "disk_free_bytes": 10737418240},
+  "updates": {"current_revision": "0123456789abcdef0123456789abcdef01234567", "available_revision": null, "state": "current"},
+  "ingress": {"kind": "uds", "endpoint_label": "control", "public_address": null},
+  "power": {"on_ac_power": true, "battery_percent": null, "low_power_mode": false},
+  "mobile": {"background_execution": "unsupported", "network_class": "ethernet"},
+  "invariants": [
+    "snapshot_contains_no_credentials",
+    "snapshot_contains_no_raw_private_backend_addresses",
+    "sequence_is_monotonic_per_daemon_instance",
+    "observed_at_is_freshness_evidence_not_authorization"
+  ]
+}

@@ -30,7 +30,13 @@
       "role": "downstream-projection-evidence-only",
       "requiredFor": [
         "wit-projection-compatibility",
+        "native-sdk-contract-evidence",
         "component-sdk-promotion"
+      ],
+      "defaultMode": "strict",
+      "targets": [
+        "native-sdk",
+        "wasm-component"
       ]
     }
   },

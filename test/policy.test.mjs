@@ -25,6 +25,15 @@ test('contract stack separates authority, conformance and persistence convergenc
   assert.match(tjsv.commit, immutableSha);
   assert.deepEqual(tjsv.requiredFor, ['wire-parity', 'contract-ir', 'runtime-conformance']);
 
+  const wit = stack.tools.witProjectionCompatibility;
+  assert.equal(wit.repository, 'ORESoftware/typespec-json-schema-validator');
+  assert.equal(wit.commit, '5ff1051c5aab84971abe3887dd5ecfa56e69a16e');
+  assert.match(wit.commit, immutableSha);
+  assert.equal(wit.export, '@oresoftware/typespec-json-schema-validator/wit-compatibility');
+  assert.equal(wit.cli, 'tjsv verify-wit');
+  assert.equal(wit.role, 'downstream-projection-evidence-only');
+  assert.deepEqual(wit.requiredFor, ['wit-projection-compatibility', 'component-sdk-promotion']);
+
   const persistence = stack.tools.persistenceConvergence;
   assert.equal(persistence.repository, 'ORESoftware/ores-contracts');
   assert.match(persistence.commit, immutableSha);

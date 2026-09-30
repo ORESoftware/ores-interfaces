@@ -1,6 +1,6 @@
 # ORES contract stack: authority, projection, and conformance
 
-This repository participates in a four-layer contract stack. The layers are intentionally separate so that authored contract authority, parity checking, persistence projection, and runtime conformance cannot silently become competing sources of truth.
+This repository participates in a layered contract stack. The layers are intentionally separate so that authored contract authority, parity checking, persistence projection, WIT execution/interface projection, and runtime conformance cannot silently become competing sources of truth.
 
 ## Canonical responsibilities
 

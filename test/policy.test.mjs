@@ -32,7 +32,13 @@ test('contract stack separates authority, conformance and persistence convergenc
   assert.equal(wit.export, '@oresoftware/typespec-json-schema-validator/wit-compatibility');
   assert.equal(wit.cli, 'tjsv verify-wit');
   assert.equal(wit.role, 'downstream-projection-evidence-only');
-  assert.deepEqual(wit.requiredFor, ['wit-projection-compatibility', 'component-sdk-promotion']);
+  assert.equal(wit.defaultMode, 'strict');
+  assert.deepEqual(wit.targets, ['native-sdk', 'wasm-component']);
+  assert.deepEqual(wit.requiredFor, [
+    'wit-projection-compatibility',
+    'native-sdk-contract-evidence',
+    'component-sdk-promotion',
+  ]);
 
   const persistence = stack.tools.persistenceConvergence;
   assert.equal(persistence.repository, 'ORESoftware/ores-contracts');

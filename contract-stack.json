@@ -24,10 +24,22 @@
     },
     "witProjectionCompatibility": {
       "repository": "ORESoftware/typespec-json-schema-validator",
-      "commit": "71c1282ebe3d50e4dd029f5515538a797e70558d",
+      "commit": "f56a730fce9b77dc3dd19a68e4e556cd3296af8c",
       "export": "@oresoftware/typespec-json-schema-validator/wit-compatibility",
       "cli": "tjsv verify-wit",
       "role": "downstream-projection-evidence-only",
+      "promotionRole": "necessary-not-sufficient",
+      "composedReleaseGate": {
+        "status": "pending-implementation",
+        "tracker": "ORESoftware/typespec-json-schema-validator#221",
+        "mustBind": [
+          "parity-contract-ir",
+          "wit-projection-verification",
+          "ores-wit-toolchain-receipt",
+          "wit-baseline-provenance",
+          "wit-compatibility-receipt"
+        ]
+      },
       "requiredFor": [
         "wit-projection-compatibility",
         "native-sdk-contract-evidence",

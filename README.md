@@ -16,6 +16,8 @@ Pure transport/value contracts stay persistence-neutral. Contract families that 
 
 Runtime conformance is separate from code generation. Reviewed fixture corpora stay with the contract family; isolated language/runtime adapters produce verdicts only; TJSV's runtime-conformance protocol binds those verdicts to the exact Contract IR, parity receipt, and corpus digest.
 
+WIT is a downstream execution/interface projection, not an authored peer. The registry pins TJSV's WIT compatibility API/CLI by exact commit. Raw `.wit` parsing, canonical formatting, Contract-IR-to-WIT emission, component-model tooling, and language binding generation belong in `ORESoftware/ores-wit`; normalized WIT projections and compatibility receipts are retained evidence. Until `ores-wit` is itself pinned here by an immutable reviewed revision, consumers must not treat an unversioned clone or `main` as release evidence.
+
 ### Legacy compatibility package
 
 The original `generated/public` package remains a compatibility slice pinned to `ores-otel/ores-interfaces` at an immutable commit. `shared-interfaces.json` governs that legacy package and does **not** transfer authority for all repository-owned `contracts/` back to the legacy source.
@@ -44,7 +46,7 @@ The npm source package exposes `@oresoftware/ores-interfaces/schema`, `/typespec
 
 This repository owns genuinely shared semantic contracts, not product-specific persistence tables, Kubernetes topology, validator implementations, or fleet policy orchestration. Product/domain contract authorities remain in their owning `*-interfaces` repositories and may consume the shared primitives here.
 
-TJSV is the generic TypeSpec/JSON Schema parity and runtime-conformance engine. `ores-contracts` is the persistence-aware independent-parser/codegen convergence engine. `ores-cli` resolves fleet policy and immutable dependency identities. Generated schemas/types/ORM code, Contract IR, parity receipts, adapter evidence, and final conformance reports are downstream evidence, never a third editable authority.
+TJSV is the generic TypeSpec/JSON Schema parity and runtime-conformance engine. `ores-contracts` is the persistence-aware independent-parser/codegen convergence engine. `ores-cli` resolves fleet policy and immutable dependency identities. Generated schemas/types/ORM code, raw/generated WIT, normalized WIT projections, WIT compatibility receipts, Contract IR, parity receipts, adapter evidence, and final conformance reports are downstream evidence, never a third editable authority.
 
 The original bounded public package started with `Ores.Validation.RequestMeta`, `PageQuery`, `ProblemDetails`, and `PublicValidationContract` and has since admitted additional compatibility declarations. It is not a claim of universal schema equivalence or full authority migration. Runtime request validation still belongs at application admission boundaries.
 

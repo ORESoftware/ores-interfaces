@@ -9,12 +9,12 @@ on:
         type: number
         default: 1
       language_manifest:
-        description: Optional repository-relative JSON file containing a languages array
+        description: Optional TJSV language-boundaries/v1 manifest that requires exact CI-produced evidence for every declared runtime
         required: false
         type: string
         default: ''
       minimum_languages:
-        description: Minimum distinct languages required when language_manifest is supplied
+        description: Minimum distinct required languages; must be >=2 for strict evidence admission
         required: false
         type: number
         default: 0
@@ -127,13 +127,16 @@ jobs:
             const full = resolve(root, normalize(manifest));
             if (!full.startsWith(root + sep)) throw new Error('language_manifest escapes repository');
             const doc = JSON.parse(readFileSync(full, 'utf8'));
-            const languages = Array.isArray(doc) ? doc : doc.languages;
-            if (!Array.isArray(languages)) throw new Error('language_manifest must be an array or contain languages[]');
-            const names = [...new Set(languages.map(item => typeof item === 'string' ? item : item?.name).filter(Boolean))];
+            if (configs.length !== 1) throw new Error('strict runtime evidence requires exactly one peer pair per invocation; split multi-pair verification into separate jobs');
+            if (doc?.schema !== 'ores.typespec-json-schema-validator.language-boundaries/v1') throw new Error('language_manifest must be a TJSV language-boundaries/v1 document, not a list of names');
             const min = Number(process.env.MINIMUM_LANGUAGES || '0');
             if (!Number.isSafeInteger(min) || min < 0) throw new Error('minimum_languages must be a non-negative integer');
-            if (names.length < min) throw new Error(`language matrix has ${names.length} distinct languages; ${min} required`);
-            console.log(`language matrix: ${names.length} distinct runtime/language targets`);
+            const targets = doc.targets;
+            if (!Array.isArray(targets) || targets.length === 0) throw new Error('strict language boundaries require concrete runtime targets');
+            if (targets.some(target => target?.required !== true || target?.ingress !== true || target?.egress !== true)) throw new Error('every declared runtime must be required and validate ingress plus egress');
+            const names = [...new Set(targets.map(target => target.language))];
+            if (names.length < Math.max(2, min)) throw new Error(`runtime boundary has ${names.length} languages; at least ${Math.max(2, min)} required`);
+            console.log(`strict language boundaries: ${targets.length} required runtimes, ${names.length} languages`);
           }
 
           writeFileSync('tmp/tjsv-pairs.tsv', rows.join('\n') + (rows.length ? '\n' : ''));
@@ -146,11 +149,74 @@ jobs:
           while IFS=$'\t' read -r config typespec schema instances mapping int64_strategy seal_object_schemas; do
             [ -n "$config" ] || continue
             i=$((i + 1))
-            args=(check "--typespec=$typespec" "--schema=$schema" "--report=tmp/tjsv-reports/$i.json" "--int64-strategy=$int64_strategy" "--seal-object-schemas=$seal_object_schemas")
+            args=(check "--typespec=$typespec" "--schema=$schema" "--report=tmp/tjsv-reports/$i.json" "--contract-ir=tmp/tjsv-reports/$i.ir.json" "--output-dir=tmp/tjsv-generated/$i" "--int64-strategy=$int64_strategy" "--seal-object-schemas=$seal_object_schemas")
             if [ "$instances" != '-' ]; then args+=("--instances=$instances"); fi
             if [ "$mapping" != '-' ]; then args+=("--mapping=$mapping"); fi
             node .ores-tools/tjsv/bin/typespec-json-schema-validator.mjs "${args[@]}"
           done < tmp/tjsv-pairs.tsv
+      # The calling workflow must build/test every language and upload these
+      # exact-head JSON receipts. A list of names is never implementation proof.
+      - name: Download native runtime proof receipts
+        if: ${{ inputs.language_manifest != '' }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: polyglot-runtime-evidence
+          path: tmp/runtime-evidence
+      - name: Admit polyglot runtime evidence against fresh TypeSpec and JSON Schema
+        if: ${{ inputs.language_manifest != '' }}
+        env:
+          LANGUAGE_MANIFEST: ${{ inputs.language_manifest }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, lstatSync } from 'node:fs';
+          import { resolve, relative, sep } from 'node:path';
+          import { verifyLanguageBoundariesAgainstCurrentInputs } from './.ores-tools/tjsv/src/language-boundary-current-inputs.mjs';
+
+          const root = process.cwd();
+          function admittedFile(value, label, base = root) {
+            if (typeof value !== 'string' || !value || value.includes('\\') || value.startsWith('/') || value.split('/').some(p => p === '' || p === '.' || p === '..')) {
+              throw new Error(label + ' must be a canonical relative file');
+            }
+            const abs = resolve(base, value);
+            const rel = relative(base, abs);
+            if (!rel || rel === '..' || rel.startsWith('..' + sep)) throw new Error(label + ' escapes allowed root');
+            let at = base;
+            for (const part of value.split('/')) {
+              at = resolve(at, part);
+              if (lstatSync(at).isSymbolicLink()) throw new Error(label + ' crosses symlink');
+            }
+            if (!lstatSync(abs).isFile()) throw new Error(label + ' must be a regular file');
+            return abs;
+          }
+          const manifest = JSON.parse(readFileSync(admittedFile(process.env.LANGUAGE_MANIFEST, 'manifest'), 'utf8'));
+          if (manifest.schema !== 'ores.typespec-json-schema-validator.language-boundaries/v1') throw new Error('unsupported language boundary manifest');
+          if (!Array.isArray(manifest.targets) || manifest.targets.length === 0) throw new Error('missing runtime targets');
+          const evidenceRoot = resolve(root, 'tmp/runtime-evidence');
+          const evidenceByPath = Object.create(null);
+          for (const target of manifest.targets) {
+            if (target?.required !== true || target?.ingress !== true || target?.egress !== true) throw new Error('all targets require bidirectional validation');
+            const evidence = JSON.parse(readFileSync(admittedFile(target.evidence, 'runtime receipt', evidenceRoot), 'utf8'));
+            if (evidence.sourceRevision !== process.env.EXPECTED_SHA) throw new Error('runtime receipt is not bound to the exact checkout revision');
+            if (Object.hasOwn(evidenceByPath, target.evidence)) throw new Error('one receipt cannot stand for multiple runtimes');
+            evidenceByPath[target.evidence] = evidence;
+          }
+          const rows = readFileSync('tmp/tjsv-pairs.tsv', 'utf8').trim().split('\n').filter(Boolean);
+          if (rows.length !== 1) throw new Error('strict conformance requires one peer pair per invocation');
+          const [, typespec, authoredSchema] = rows[0].split('\t');
+          const report = JSON.parse(readFileSync('tmp/tjsv-reports/1.json', 'utf8'));
+          const contractIr = JSON.parse(readFileSync('tmp/tjsv-reports/1.ir.json', 'utf8'));
+          const receipt = await verifyLanguageBoundariesAgainstCurrentInputs({
+            typespec: admittedFile(typespec, 'TypeSpec'),
+            authoredSchema: admittedFile(authoredSchema, 'JSON Schema'),
+            generatedSchema: admittedFile('tmp/tjsv-generated/1/typespec.generated.schema.json', 'comparison witness'),
+            report, contractIr, manifest, evidenceByPath,
+          });
+          if (receipt.status !== 'passed' || receipt.zeroUnexplainedFindings !== true || receipt.counts.admittedEvidence !== manifest.targets.length) {
+            throw new Error('polyglot admission refused: ' + receipt.findings.map(f => f.ruleId).join(', '));
+          }
+          console.log(JSON.stringify({ status: receipt.status, verificationId: receipt.verificationId, admittedEvidence: receipt.counts.admittedEvidence }));
+          NODE
       - name: Retain TJSV parity evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

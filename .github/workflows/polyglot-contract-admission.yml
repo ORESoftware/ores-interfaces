@@ -143,13 +143,18 @@ jobs:
           console.log(`ores-cli-compatible peer manifests: ${rows.length}`);
           NODE
       - name: Run TJSV over every declared peer authority
+        env:
+          LANGUAGE_MANIFEST: ${{ inputs.language_manifest }}
         run: |
           set -euo pipefail
           i=0
           while IFS=$'\t' read -r config typespec schema instances mapping int64_strategy seal_object_schemas; do
             [ -n "$config" ] || continue
             i=$((i + 1))
-            args=(check "--typespec=$typespec" "--schema=$schema" "--report=tmp/tjsv-reports/$i.json" "--contract-ir=tmp/tjsv-reports/$i.ir.json" "--output-dir=tmp/tjsv-generated/$i" "--int64-strategy=$int64_strategy" "--seal-object-schemas=$seal_object_schemas")
+            args=(check "--typespec=$typespec" "--schema=$schema" "--report=tmp/tjsv-reports/$i.json" "--int64-strategy=$int64_strategy" "--seal-object-schemas=$seal_object_schemas")
+            if [ -n "$LANGUAGE_MANIFEST" ]; then
+              args+=("--contract-ir=tmp/tjsv-reports/$i.ir.json" "--output-dir=tmp/tjsv-generated/$i")
+            fi
             if [ "$instances" != '-' ]; then args+=("--instances=$instances"); fi
             if [ "$mapping" != '-' ]; then args+=("--mapping=$mapping"); fi
             node .ores-tools/tjsv/bin/typespec-json-schema-validator.mjs "${args[@]}"

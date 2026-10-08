@@ -23,9 +23,15 @@ one runtime receipt verified unrelated schemas.
 The *calling* workflow compiles and tests native implementations independently
 and uploads an Actions artifact named `polyglot-runtime-evidence` **in the same
 workflow run**. The reusable workflow downloads it before admission. Artifact
-contents are JSON receipts relative to that artifact root, at each manifest
-`targets[].evidence` path. Never commit generated green receipts, and never
-use source comments as receipts.
+contents are JSON receipts at each manifest `targets[].evidence` path,
+plus their byte-exact tested native artifacts. For example,
+`rust/native.json` **must** be accompanied by `rust/native.json.artifact` in
+the same artifact root. The latter must be the compiled executable, complete
+packaged library or deterministic bundle actually tested by CI. The gate
+reads the uploaded bytes and verifies their SHA-256 against the receipt's
+`artifactDigest`. Missing, empty, oversized, symlinked or mismatched artifacts
+fail closed. Never commit fabricated green receipts or use source comments as
+receipts.
 
 Each native-language receipt must conform to TJSV's published
 `language-boundary-evidence/v1` schema. It must bind the exact candidate head

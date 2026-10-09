@@ -58,7 +58,7 @@ jobs:
           import { dirname, isAbsolute, join, normalize, relative, resolve, sep } from 'node:path';
 
           const root = process.cwd();
-          const CONTROL = /[\\u0000-\\u001f\\u007f-\\u009f\\u2028\\u2029]/u;
+          const CONTROL = /[\u0000-\u001f\u007f-\u009f\u2028\u2029]/u;
           const excluded = new Set(['.git','.typespec-json-schema-validator','artifacts','build','dist','evidence','generated','node_modules','out','target','tmp']);
           const configs = [];
           const walk = (dir, depth = 0) => {

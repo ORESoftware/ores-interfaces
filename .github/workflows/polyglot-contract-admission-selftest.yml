@@ -4,12 +4,16 @@ on:
   pull_request:
     paths:
       - '.github/workflows/polyglot-contract-admission.yml'
+      - 'scripts/admit-polyglot-runtime-artifacts.mjs'
+      - 'test/runtime-artifact-admission.test.mjs'
       - '.github/workflows/polyglot-contract-admission-selftest.yml'
       - 'contracts/env-manifest/v1/**'
   push:
     branches: [main]
     paths:
       - '.github/workflows/polyglot-contract-admission.yml'
+      - 'scripts/admit-polyglot-runtime-artifacts.mjs'
+      - 'test/runtime-artifact-admission.test.mjs'
       - '.github/workflows/polyglot-contract-admission-selftest.yml'
       - 'contracts/env-manifest/v1/**'
 
@@ -17,6 +21,23 @@ permissions:
   contents: read
 
 jobs:
+  adversarial-native-proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Prove exact candidate source
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22.16.0'
+      - name: Try forged, missing, shared, symlinked and tampered runtime artifacts
+        run: node --test test/runtime-artifact-admission.test.mjs
   admission:
     uses: ./.github/workflows/polyglot-contract-admission.yml
     with:

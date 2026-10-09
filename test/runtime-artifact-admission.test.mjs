@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { lstatSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { runInNewContext } from 'node:vm';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import test from 'node:test';
 
-import { admitRuntimeArtifactBundle } from '../scripts/admit-polyglot-runtime-artifacts.mjs';
+import { admitRuntimeArtifactBundle, assertCanonicalFile } from '../scripts/admit-polyglot-runtime-artifacts.mjs';
 
 const SHA = 'a'.repeat(40);
 const evidence = (language, runtime, content) => ({
@@ -134,4 +135,25 @@ test('refuse an artifact that is a directory, not executable/package bytes', t =
   rmSync(artifact);
   mkdirSync(artifact);
   assert.throws(f.run, /non-empty regular file/);
+});
+
+
+test('reusable workflow can execute its own native admission gate without caller repository scripts', t => {
+  const workflow = readFileSync(new URL('../.github/workflows/polyglot-contract-admission.yml', import.meta.url), 'utf8');
+  assert.doesNotMatch(workflow, /import\s+.*from\s+['"]\.\/scripts\/admit-polyglot-runtime-artifacts/);
+  const start = workflow.indexOf('          function admitRuntimeArtifactBundle(');
+  const end = workflow.indexOf('          const manifest = JSON.parse', start);
+  assert.ok(start >= 0 && end > start, 'reusable workflow must have a native proof verifier');
+  const executable = workflow.slice(start, end).split('\n').map(line =>
+    line.startsWith('          ') ? line.slice(10) : line
+  ).join('\n');
+  const runtime = runInNewContext(executable + '\nadmitRuntimeArtifactBundle;', {
+    createHash, readFileSync, lstatSync,
+    admittedFile: (value, label, base) => assertCanonicalFile(base, value, label, 128 * 1024 * 1024),
+  });
+  const f = fixture();
+  t.after(() => rmSync(f.root, { recursive: true, force: true }));
+  assert.equal(Object.keys(runtime({manifest: f.manifest, artifactRoot: f.root, expectedSha: SHA})).length, 2);
+  writeFileSync(join(f.root, 'go/native.json.artifact'), 'forged');
+  assert.throws(() => runtime({manifest: f.manifest, artifactRoot: f.root, expectedSha: SHA}), /digest mismatch/);
 });

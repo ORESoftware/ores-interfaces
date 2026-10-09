@@ -23,7 +23,9 @@ export function assertCanonicalFile(base, path, label, limit = MAX_RECEIPT_BYTES
   let cursor = root;
   for (const segment of path.split('/')) {
     cursor = join(cursor, segment);
-    if (lstatSync(cursor).isSymbolicLink()) throw new Error(label + ' crosses symbolic link');
+    let info;
+    try { info = lstatSync(cursor); } catch { throw new Error(label + ' is missing or inaccessible'); }
+    if (info.isSymbolicLink()) throw new Error(label + ' crosses symbolic link');
   }
   const info = lstatSync(destination);
   if (!info.isFile() || info.size <= 0 || info.size > limit) {

@@ -189,7 +189,7 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import { readFileSync, lstatSync } from 'node:fs';
-          import { admitRuntimeArtifactBundle } from './scripts/admit-polyglot-runtime-artifacts.mjs';
+          import { createHash } from 'node:crypto';
           import { resolve, relative, sep } from 'node:path';
           import { verifyLanguageBoundariesAgainstCurrentInputs } from './.ores-tools/tjsv/src/language-boundary-current-inputs.mjs';
 
@@ -208,6 +208,45 @@ jobs:
             }
             if (!lstatSync(abs).isFile()) throw new Error(label + ' must be a regular file');
             return abs;
+          }
+          function admitRuntimeArtifactBundle({ manifest, artifactRoot, expectedSha }) {
+            if (!/^[a-f0-9]{40}$/.test(expectedSha) || !Array.isArray(manifest.targets)
+                || manifest.targets.length < 2 || manifest.authorities?.typeSpec !== 'peer'
+                || manifest.authorities?.jsonSchema !== 'peer'
+                || manifest.authorities?.generatedWitness !== 'evidence_only') {
+              throw new Error('native admission requires immutable revision, peer authorities and two runtimes');
+            }
+            const evidenceByPath = Object.create(null);
+            const identities = new Set();
+            const digests = new Set();
+            for (const target of manifest.targets) {
+              if (target?.required !== true || target.ingress !== true || target.egress !== true) {
+                throw new Error('all runtime targets require ingress and egress evidence');
+              }
+              const identity = JSON.stringify([target.language, target.runtime]);
+              if (identities.has(identity)) throw new Error('duplicate native runtime identity');
+              identities.add(identity);
+              const file = admittedFile(target.evidence, 'native receipt', artifactRoot);
+              if (lstatSync(file).size > 1024 * 1024) throw new Error('native receipt exceeds limit');
+              const proof = JSON.parse(readFileSync(file, 'utf8'));
+              if (proof.schema !== 'ores.typespec-json-schema-validator.language-boundary-evidence/v1'
+                  || proof.status !== 'passed' || proof.sourceRevision !== expectedSha
+                  || proof.language !== target.language || proof.runtime !== target.runtime
+                  || proof.validation?.ingress !== 'passed' || proof.validation?.egress !== 'passed') {
+                throw new Error('native receipt does not prove passed bidirectional runtime validation');
+              }
+              const artifact = admittedFile(target.evidence + '.artifact', 'native artifact', artifactRoot);
+              const size = lstatSync(artifact).size;
+              if (size < 1 || size > 128 * 1024 * 1024) throw new Error('native artifact size exceeds limits');
+              const digest = 'sha256:' + createHash('sha256').update(readFileSync(artifact)).digest('hex');
+              if (proof.artifactDigest !== digest || digests.has(digest)) {
+                throw new Error('native artifact digest mismatch or reused across runtimes');
+              }
+              digests.add(digest);
+              if (Object.hasOwn(evidenceByPath, target.evidence)) throw new Error('duplicate native receipt');
+              evidenceByPath[target.evidence] = proof;
+            }
+            return evidenceByPath;
           }
           const manifest = JSON.parse(readFileSync(admittedFile(process.env.LANGUAGE_MANIFEST, 'manifest'), 'utf8'));
           if (manifest.schema !== 'ores.typespec-json-schema-validator.language-boundaries/v1') throw new Error('unsupported language boundary manifest');

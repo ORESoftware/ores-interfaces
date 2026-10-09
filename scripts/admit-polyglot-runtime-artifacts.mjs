@@ -9,6 +9,12 @@ const SHA256 = /^sha256:[a-f0-9]{64}$/u;
 const CONTROL = /[\u0000-\u001f\u007f-\u009f\u2028\u2029]/u;
 const MAX_RECEIPT_BYTES = 1024 * 1024;
 const MAX_ARTIFACT_BYTES = 128 * 1024 * 1024;
+const MANIFEST_FIELDS = new Set(['schema', 'minimumDistinctLanguages', 'authorities', 'targets']);
+const AUTHORITY_FIELDS = new Set(['typeSpec', 'jsonSchema', 'generatedWitness']);
+const TARGET_FIELDS = new Set(['language', 'runtime', 'required', 'ingress', 'egress', 'evidence']);
+const EVIDENCE_FIELDS = new Set(['schema', 'language', 'runtime', 'status', 'sourceRevision', 'artifactDigest', 'receiptRunId', 'contractIrId', 'toolchain', 'generator', 'validation']);
+const onlyFields = (item, expected) => item !== null && typeof item === 'object' && !Array.isArray(item)
+  && Object.keys(item).every(key => expected.has(key));
 
 export function assertCanonicalFile(base, path, label, limit = MAX_RECEIPT_BYTES) {
   if (typeof path !== 'string' || path.length === 0 || path.length > 2048
@@ -44,8 +50,12 @@ function strictManifest(manifest) {
       || manifest.authorities?.generatedWitness !== 'evidence_only') {
     throw new Error('strict runtime manifest requires peer authorities and at least two language targets');
   }
+  if (!onlyFields(manifest, MANIFEST_FIELDS) || !onlyFields(manifest.authorities, AUTHORITY_FIELDS)) {
+    throw new Error('strict runtime manifest contains unknown authority properties');
+  }
   const langs = new Set();
   for (const t of manifest.targets) {
+    if (!onlyFields(t, TARGET_FIELDS)) throw new Error('unknown runtime target properties');
     if (t?.required !== true || t.ingress !== true || t.egress !== true
         || typeof t.language !== 'string' || !t.language.trim() || typeof t.runtime !== 'string' || !t.runtime.trim()) {
       throw new Error('all runtime targets must require bidirectional conformance');
@@ -67,6 +77,7 @@ export function admitRuntimeArtifactBundle({ manifest, artifactRoot, expectedSha
     identities.add(identity);
     const evidenceFile = assertCanonicalFile(artifactRoot, target.evidence, 'runtime evidence');
     const evidence = JSON.parse(readFileSync(evidenceFile, 'utf8'));
+    if (!onlyFields(evidence, EVIDENCE_FIELDS)) throw new Error('runtime evidence includes unknown or invalid properties');
     if (evidence?.schema !== EVIDENCE_SCHEMA || evidence.status !== 'passed'
         || evidence.language !== target.language || evidence.runtime !== target.runtime
         || evidence.validation?.ingress !== 'passed' || evidence.validation?.egress !== 'passed') {

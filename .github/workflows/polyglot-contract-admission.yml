@@ -175,7 +175,7 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import { readFileSync, lstatSync } from 'node:fs';
-          import { createHash } from 'node:crypto';
+          import { admitRuntimeArtifactBundle } from './scripts/admit-polyglot-runtime-artifacts.mjs';
           import { resolve, relative, sep } from 'node:path';
           import { verifyLanguageBoundariesAgainstCurrentInputs } from './.ores-tools/tjsv/src/language-boundary-current-inputs.mjs';
 
@@ -198,20 +198,11 @@ jobs:
           const manifest = JSON.parse(readFileSync(admittedFile(process.env.LANGUAGE_MANIFEST, 'manifest'), 'utf8'));
           if (manifest.schema !== 'ores.typespec-json-schema-validator.language-boundaries/v1') throw new Error('unsupported language boundary manifest');
           if (!Array.isArray(manifest.targets) || manifest.targets.length === 0) throw new Error('missing runtime targets');
-          const evidenceRoot = resolve(root, 'tmp/runtime-evidence');
-          const evidenceByPath = Object.create(null);
-          for (const target of manifest.targets) {
-            if (target?.required !== true || target?.ingress !== true || target?.egress !== true) throw new Error('all targets require bidirectional validation');
-            const evidence = JSON.parse(readFileSync(admittedFile(target.evidence, 'runtime receipt', evidenceRoot), 'utf8'));
-            const artifactPath = admittedFile(target.evidence + '.artifact', 'tested native artifact', evidenceRoot);
-            const artifactStat = lstatSync(artifactPath);
-            if (artifactStat.size === 0 || artifactStat.size > 128 * 1024 * 1024) throw new Error('native artifact must be non-empty and at most 128 MiB');
-            const actualDigest = 'sha256:' + createHash('sha256').update(readFileSync(artifactPath)).digest('hex');
-            if (evidence.artifactDigest !== actualDigest) throw new Error('native artifact bytes do not match runtime evidence digest');
-            if (evidence.sourceRevision !== process.env.EXPECTED_SHA) throw new Error('runtime receipt is not bound to the exact checkout revision');
-            if (Object.hasOwn(evidenceByPath, target.evidence)) throw new Error('one receipt cannot stand for multiple runtimes');
-            evidenceByPath[target.evidence] = evidence;
-          }
+          const evidenceByPath = admitRuntimeArtifactBundle({
+            manifest,
+            artifactRoot: resolve(root, 'tmp/runtime-evidence'),
+            expectedSha: process.env.EXPECTED_SHA,
+          });
           const rows = readFileSync('tmp/tjsv-pairs.tsv', 'utf8').trim().split('\n').filter(Boolean);
           if (rows.length !== 1) throw new Error('strict conformance requires one peer pair per invocation');
           const [, typespec, authoredSchema] = rows[0].split('\t');

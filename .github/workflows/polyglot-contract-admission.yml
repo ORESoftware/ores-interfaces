@@ -54,10 +54,11 @@ jobs:
         run: |
           mkdir -p tmp/tjsv-reports
           node --input-type=module <<'NODE'
-          import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
-          import { dirname, join, normalize, relative, resolve, sep } from 'node:path';
+          import { lstatSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs';
+          import { dirname, isAbsolute, join, normalize, relative, resolve, sep } from 'node:path';
 
           const root = process.cwd();
+          const CONTROL = /[\\u0000-\\u001f\\u007f-\\u009f\\u2028\\u2029]/u;
           const excluded = new Set(['.git','.typespec-json-schema-validator','artifacts','build','dist','evidence','generated','node_modules','out','target','tmp']);
           const configs = [];
           const walk = (dir, depth = 0) => {
@@ -86,13 +87,23 @@ jobs:
             if (typeof doc.jsonSchema !== 'string' || !doc.jsonSchema.trim()) throw new Error(`${config}: missing jsonSchema`);
             const home = dirname(config);
             const resolvePeer = (value, label, extension) => {
-              if (typeof value !== 'string' || !value.trim()) throw new Error(`${config}: invalid ${label} path`);
+              if (typeof value !== 'string' || !value.trim() || value !== value.trim()
+                  || CONTROL.test(value) || value.includes('\\') || isAbsolute(value)) {
+                throw new Error(`${config}: invalid or control-delimited ${label} path`);
+              }
               const normalized = normalize(value);
               if (normalized.startsWith('..' + sep) || normalized === '..' || resolve(home, normalized) === root) throw new Error(`${config}: unsafe ${label} path`);
               if (normalized.split(/[\\/]+/).some(part => excluded.has(part))) throw new Error(`${config}: ${label} is under generated/evidence/build output`);
               const full = resolve(home, normalized);
               if (!full.startsWith(root + sep)) throw new Error(`${config}: ${label} escapes repository`);
-              if (!statSync(full).isFile()) throw new Error(`${config}: ${label} is not a regular file`);
+              let cursor = root;
+              for (const component of relative(root, full).split(sep)) {
+                cursor = join(cursor, component);
+                if (lstatSync(cursor).isSymbolicLink()) throw new Error(`${config}: ${label} crosses a symlink`);
+              }
+              if (!realpathSync(full).startsWith(root + sep) || !statSync(full).isFile()) {
+                throw new Error(`${config}: ${label} must be a regular source file inside checkout`);
+              }
               const rel = relative(root, full);
               if (extension && !rel.endsWith(extension)) throw new Error(`${config}: ${label} must be ${extension}`);
               return rel;
@@ -115,7 +126,9 @@ jobs:
 
             const instances = join(home, 'instances');
             const instancesRel = statSafeDirectory(instances) ? relative(root, instances) : '-';
-            rows.push([relative(root, config), tsp, schema, instancesRel, mapping, int64Strategy, String(sealObjectSchemas)].join('\t'));
+            const fields = [relative(root, config), tsp, schema, instancesRel, mapping, int64Strategy, String(sealObjectSchemas)];
+            if (fields.some(field => CONTROL.test(field))) throw new Error('peer file path contains a control character or TSV delimiter');
+            rows.push(fields.join('\t'));
           }
 
           function statSafeDirectory(path) {
@@ -124,6 +137,7 @@ jobs:
 
           const manifest = process.env.LANGUAGE_MANIFEST?.trim();
           if (manifest) {
+            if (CONTROL.test(manifest) || manifest.includes('\\') || isAbsolute(manifest)) throw new Error('language_manifest must be a safe relative path');
             const full = resolve(root, normalize(manifest));
             if (!full.startsWith(root + sep)) throw new Error('language_manifest escapes repository');
             const doc = JSON.parse(readFileSync(full, 'utf8'));

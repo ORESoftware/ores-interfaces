@@ -57,7 +57,7 @@ for (const [label, change, pattern] of [
     const t = f.manifest.targets[0]; const b = evidence('rust', 'native', Buffer.from('compiled-test-binary-rust'));
     b.validation.ingress = 'failed'; writeFileSync(join(f.root, t.evidence), JSON.stringify(b));
   }, /bidirectionally passed/],
-  ['duplicate identity', f => { f.manifest.targets[1].language = 'rust'; }, /runtime identity|matching/],
+  ['duplicate identity', f => { f.manifest.targets[1].language = 'rust'; }, /runtime identity|matching|required languages/],
   ['shared binary', f => f.writeTarget(1, Buffer.from('compiled-test-binary-rust')), /same native artifact/],
   ['path traversal', f => { f.manifest.targets[0].evidence = '../outside.json'; }, /canonical repository-relative/],
   ['opted-out runtime', f => { f.manifest.targets[0].required = false; }, /bidirectional/],

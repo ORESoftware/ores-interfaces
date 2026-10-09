@@ -80,3 +80,58 @@ test('refuse JSON receipt with no underlying native artifact bytes', t => {
   rmSync(join(f.root, 'go/native.json.artifact'));
   assert.throws(f.run, /native artifact/);
 });
+
+
+test('reject hostile nested paths, missing evidence and unsupported unknown properties', t => {
+  const cases = [
+    ['unknown manifest field', f => { f.manifest.allow_unproven = true; }, /unknown authority properties/],
+    ['unknown authority field', f => { f.manifest.authorities.generatedIsAuthority = true; }, /unknown authority properties/],
+    ['unknown runtime field', f => { f.manifest.targets[0].untrusted = true; }, /unknown runtime target properties/],
+    ['invalid authority priority', f => { f.manifest.authorities.generatedWitness = 'peer'; }, /peer authorities/],
+    ['weakened minimum distinct languages', f => { f.manifest.minimumDistinctLanguages = 1; }, /at least two language targets/],
+    ['invalid evidence JSON', f => { writeFileSync(join(f.root, 'rust/native.json'), '{"schema":'); }, /SyntaxError|Unexpected|JSON/],
+    ['zero-length native binary', f => { writeFileSync(join(f.root, 'rust/native.json.artifact'), Buffer.alloc(0)); }, /non-empty regular file/],
+    ['unknown evidence field', f => {
+      const x = evidence('rust', 'native', Buffer.from('compiled-test-binary-rust'));
+      x.skip_validation = true; writeFileSync(join(f.root, 'rust/native.json'), JSON.stringify(x));
+    }, /unknown or invalid properties/],
+    ['receipt is a JSON array', f => { writeFileSync(join(f.root, 'rust/native.json'), '[]'); }, /unknown or invalid properties/],
+    ['evidence reports pending', f => {
+      const x = evidence('rust', 'native', Buffer.from('compiled-test-binary-rust'));
+      x.status = 'pending'; writeFileSync(join(f.root, 'rust/native.json'), JSON.stringify(x));
+    }, /bidirectionally passed/],
+    ['missing egress proof', f => {
+      const x = evidence('rust', 'native', Buffer.from('compiled-test-binary-rust'));
+      delete x.validation.egress; writeFileSync(join(f.root, 'rust/native.json'), JSON.stringify(x));
+    }, /bidirectionally passed/],
+    ['invalid digest case', f => {
+      const x = evidence('rust', 'native', Buffer.from('compiled-test-binary-rust'));
+      x.artifactDigest = x.artifactDigest.toUpperCase(); writeFileSync(join(f.root, 'rust/native.json'), JSON.stringify(x));
+    }, /do not match/],
+    ['malicious absolute evidence path', f => { f.manifest.targets[0].evidence = '/etc/passwd'; }, /canonical repository-relative file/],
+    ['nested parent traversal', f => { f.manifest.targets[0].evidence = 'rust/../go/native.json'; }, /canonical repository-relative file/],
+    ['duplicate slash path', f => { f.manifest.targets[0].evidence = 'rust//native.json'; }, /canonical repository-relative file/],
+    ['Windows path separators', f => { f.manifest.targets[0].evidence = 'rust\\native.json'; }, /canonical repository-relative file/],
+    ['control-char path', f => { f.manifest.targets[0].evidence = 'rust/native.json\n'; }, /canonical repository-relative file/],
+  ];
+  for (const [label, mutate, expected] of cases) {
+    const f = fixture();
+    t.after(() => rmSync(f.root, { recursive: true, force: true }));
+    mutate(f);
+    assert.throws(f.run, expected, label);
+  }
+});
+test('refuse symlinked receipt even if JSON has valid identity', t => {
+  const f = fixture(); t.after(() => rmSync(f.root, { recursive: true, force: true }));
+  const link = join(f.root, 'rust/native.json');
+  rmSync(link);
+  symlinkSync(join(f.root, 'go/native.json'), link);
+  assert.throws(f.run, /symbolic link/);
+});
+test('refuse an artifact that is a directory, not executable/package bytes', t => {
+  const f = fixture(); t.after(() => rmSync(f.root, { recursive: true, force: true }));
+  const artifact = join(f.root, 'rust/native.json.artifact');
+  rmSync(artifact);
+  mkdirSync(artifact);
+  assert.throws(f.run, /non-empty regular file/);
+});

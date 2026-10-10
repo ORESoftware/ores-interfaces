@@ -9,7 +9,7 @@ const declarations = source.split(/\r?\n/).filter(line => !line.trimStart().star
 
 test('versioned Oreslang REST contract has the exact v1 method declarations', () => {
   assert.equal(declarations, [
-    'define contract RouteContract as',
+    'pub define contract RouteContract as',
     '  fnc get(String request) => String;',
     '  fnc post(String request) => String;',
     'end',

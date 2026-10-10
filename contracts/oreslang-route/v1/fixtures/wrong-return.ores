@@ -1,0 +1,16 @@
+// Must fail type checking: get must return String, not int.
+import contract RouteContract from "../RouteContract.ores";
+
+define module Route conforms RouteContract as
+  pub fnc get(String request): int {
+    return 1;
+  }
+
+  pub fnc post(String request): String {
+    return request;
+  }
+end
+
+pub routine main(): void {
+  return;
+}

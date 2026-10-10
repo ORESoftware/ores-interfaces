@@ -5,6 +5,7 @@ import { readFileSync, realpathSync, statSync } from 'node:fs';
 import { isAbsolute, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { assertExpectedNativeRejection } from './oreslang-native-rejection.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const fixtures = join(root, 'contracts/oreslang-route/v1/fixtures');
@@ -50,12 +51,15 @@ assert(['aot', 'hybrid', 'jvm'].includes(String(buildInfo.build_mode || '').toLo
   'unrecognized native compiler profile');
 
 const positive = join(fixtures, 'valid-route.ores');
-const errors = [join(fixtures, 'missing-post.ores'), join(fixtures, 'wrong-return.ores')];
+const errors = [
+  ['missing-post', join(fixtures, 'missing-post.ores')],
+  ['wrong-return', join(fixtures, 'wrong-return.ores')],
+];
 const check = run('--check', positive);
 assert(check.status === 0, 'valid module contract did not compile/link: ' + (check.stderr || '').slice(0, 500));
-for (const path of errors) {
+for (const [kind, path] of errors) {
   const negative = run('--check', path);
-  assert(negative.status !== 0, 'invalid module contract compiled successfully: ' + path);
+  assertExpectedNativeRejection(kind, negative, path);
 }
 const execution = run(positive);
 assert(execution.status === 0, 'valid module contract failed native execution');

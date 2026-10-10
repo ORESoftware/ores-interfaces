@@ -1,0 +1,13 @@
+// Must fail module-contract linking: post is required.
+import contract RouteContract from "../RouteContract.ores";
+
+define module Route conforms RouteContract as
+  pub fnc get(String request): String {
+    return request;
+  }
+end
+
+pub routine main(): void {
+  stdio.stdout.write(Route.get("must-not-run"));
+  return;
+}

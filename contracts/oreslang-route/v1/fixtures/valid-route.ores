@@ -1,0 +1,19 @@
+// Compiler and runtime fixture: a module must implement both public methods.
+import contract RouteContract from "../RouteContract.ores";
+
+define module Route conforms RouteContract as
+  pub fnc get(String request): String {
+    return request;
+  }
+
+  pub fnc post(String request): String {
+    return request;
+  }
+end
+
+pub routine main(): void {
+  stdio.stdout.write(Route.get("get-ok"));
+  stdio.stdout.write("|");
+  stdio.stdout.write(Route.post("post-ok"));
+  return;
+}

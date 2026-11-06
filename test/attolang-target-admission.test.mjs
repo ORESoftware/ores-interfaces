@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { makeAttoLangInterfaceTarget } from '../scripts/attolang-target-admission.mjs';
+import { makeAttoLangInterfaceTarget, verifyAttoLangSourceBytes } from '../scripts/attolang-target-admission.mjs';
 
 const provenance = JSON.parse(readFileSync(new URL(
   '../generated/public/provenance.json', import.meta.url), 'utf8'));
@@ -39,5 +39,35 @@ for (const [label, mutate] of [
     const edited = clone();
     mutate(edited);
     assert.throws(() => makeAttoLangInterfaceTarget(edited), /AttoLang target admission/);
+  });
+}
+
+test('AttoLang runtime-independent target checks published source bytes, not just claims', () => {
+  const typespec = readFileSync(new URL('../generated/public/main.tsp', import.meta.url));
+  const authoredSchema = readFileSync(new URL('../generated/public/schema.json', import.meta.url));
+  const expected = makeAttoLangInterfaceTarget(provenance);
+  assert.deepEqual(verifyAttoLangSourceBytes(provenance, { typespec, authoredSchema }), expected);
+  for (const replacement of [
+    { typespec: Buffer.from('tampered TypeSpec'), authoredSchema },
+    { typespec, authoredSchema: Buffer.from('tampered authored schema') },
+    { typespec: authoredSchema, authoredSchema: typespec },
+  ]) {
+    assert.throws(() => verifyAttoLangSourceBytes(provenance, replacement),
+      /AttoLang target admission/);
+  }
+  assert.throws(() => verifyAttoLangSourceBytes(provenance, {
+    typespec, authoredSchema: undefined,
+  }), /both published contract authority files/);
+});
+
+for (const [label, mutate] of [
+  ['published TypeSpec digest mismatch', p => { p.files['main.tsp'] = '0'.repeat(64); }],
+  ['published schema digest mismatch', p => { p.files['schema.json'] = '0'.repeat(64); }],
+  ['missing published file roster', p => { delete p.files; }],
+]) {
+  test(`AttoLang source provenance rejects ${label}`, () => {
+    const changed = clone();
+    mutate(changed);
+    assert.throws(() => makeAttoLangInterfaceTarget(changed), /AttoLang target admission/);
   });
 }

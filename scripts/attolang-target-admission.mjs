@@ -1,6 +1,7 @@
 // AttoLang target-only interface projection from independently admitted
 // TypeSpec and authored JSON Schema peers. This never certifies guest code.
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const HEX40 = /^[a-f0-9]{40}$/;
@@ -41,6 +42,9 @@ export function makeAttoLangInterfaceTarget(provenance) {
     && HEX64.test(digests?.corpus ?? '')
     && HEX64.test(digests?.sourceLock ?? ''),
   'both contract authorities and the conformance corpus must be digest-bound');
+  requireCondition(provenance.files?.['main.tsp'] === digests.typespec
+    && provenance.files?.['schema.json'] === digests.authoredSchema,
+  'published public source files must match the two authoritative digests');
   requireCondition(admission.recordedCases > 0 && Number.isSafeInteger(admission.recordedCases),
     'no executed contract cases recorded');
   requireDeclarations(policy.expectedDeclarations);
@@ -70,8 +74,26 @@ export function makeAttoLangInterfaceTarget(provenance) {
   });
 }
 
+// Verify actual published bytes rather than trusting an internally
+// consistent but potentially stale provenance JSON object alone.
+export function verifyAttoLangSourceBytes(provenance, { typespec, authoredSchema }) {
+  const target = makeAttoLangInterfaceTarget(provenance);
+  const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
+  requireCondition(typespec !== undefined && authoredSchema !== undefined,
+    'both published contract authority files are required');
+  requireCondition(digest(typespec) === target.authorities.typespecSha256,
+    'published TypeSpec bytes differ from admitted contract authority');
+  requireCondition(digest(authoredSchema) === target.authorities.authoredJsonSchemaSha256,
+    'published authored JSON Schema bytes differ from admitted authority');
+  return target;
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const provenance = JSON.parse(readFileSync(
     new URL('../generated/public/provenance.json', import.meta.url), 'utf8'));
-  process.stdout.write(JSON.stringify(makeAttoLangInterfaceTarget(provenance), null, 2) + '\n');
+  const target = verifyAttoLangSourceBytes(provenance, {
+    typespec: readFileSync(new URL('../generated/public/main.tsp', import.meta.url)),
+    authoredSchema: readFileSync(new URL('../generated/public/schema.json', import.meta.url)),
+  });
+  process.stdout.write(JSON.stringify(target, null, 2) + '\n');
 }
